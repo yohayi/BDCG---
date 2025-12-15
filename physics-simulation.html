@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物理引擎模拟 - BDCG模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --primary-color: #3a0ca3;
+            --secondary-color: #4361ee;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --code-bg: #282c34;
+            --card-bg: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --tech-art-color: #00b4d8;
+            --animation-color: #ff9e00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部导航 */
+        .subpage-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .subpage-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .subpage-title h1 {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .subpage-title p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-actions a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .header-actions a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主要内容 */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .page-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+        }
+
+        .section-subtitle {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* 项目概览 */
+        .project-overview {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .project-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .project-description p {
+            margin-bottom: 1.2rem;
+            color: var(--dark-color);
+        }
+
+        .project-meta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .meta-value {
+            color: var(--gray-color);
+        }
+
+        /* 代码演示 */
+        .code-demo {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem 1.2rem;
+            color: #abb2bf;
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #abb2bf;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .hljs {
+            background: transparent;
+        }
+
+        /* 技术美术演示区域 */
+        .tech-art-section {
+            background-color: rgba(0, 180, 216, 0.05);
+            border-left: 4px solid var(--tech-art-color);
+        }
+
+        .tech-art-section .section-title {
+            color: var(--tech-art-color);
+        }
+
+        .animation-section {
+            background-color: rgba(255, 158, 0, 0.05);
+            border-left: 4px solid var(--animation-color);
+        }
+
+        .animation-section .section-title {
+            color: var(--animation-color);
+        }
+
+        /* 物理模拟演示 */
+        .physics-demo-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+            border: 2px solid var(--secondary-color);
+        }
+
+        .demo-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .demo-button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-button:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .demo-button.reset {
+            background-color: var(--accent-color);
+        }
+
+        /* 物理对象样式 */
+        .physics-object {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            user-select: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: left 0.05s linear, top 0.05s linear;
+        }
+
+        .physics-object.platform {
+            border-radius: 10px;
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+        }
+
+        .physics-object.box {
+            border-radius: 5px;
+            background: linear-gradient(135deg, #ff9e00, #ff6f00);
+        }
+
+        /* 技术美术展示 */
+        .tech-art-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .tech-art-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .tech-art-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .tech-art-visual {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-art-content {
+            padding: 1.5rem;
+        }
+
+        .tech-art-content h4 {
+            color: var(--tech-art-color);
+            margin-bottom: 0.8rem;
+        }
+
+        .tech-art-content p {
+            color: var(--gray-color);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        /* 动画演示 */
+        .animation-demo {
+            height: 300px;
+            background-color: #1a1a2e;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid var(--animation-color);
+        }
+
+        .animation-object {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--animation-color), #ff6f00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        /* 文件结构 */
+        .file-structure {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 1.5rem;
+        }
+
+        .file-tree li {
+            position: relative;
+            padding: 0.2rem 0;
+        }
+
+        .file-tree li:before {
+            content: "📁";
+            position: absolute;
+            left: -1.2rem;
+        }
+
+        .file-tree .file:before {
+            content: "📄";
+        }
+
+        .file-tree .js-file:before {
+            content: "📜";
+        }
+
+        .file-tree .shader-file:before {
+            content: "🔮";
+        }
+
+        /* 案例展示 */
+        .case-studies {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .case-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: var(--transition);
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .case-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+        }
+
+        .case-card p {
+            color: var(--gray-color);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .case-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .case-tag {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--secondary-color);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .case-tag.tech-art {
+            background-color: rgba(0, 180, 216, 0.1);
+            color: var(--tech-art-color);
+        }
+
+        .case-tag.animation {
+            background-color: rgba(255, 158, 0, 0.1);
+            color: var(--animation-color);
+        }
+
+        /* 相关资源 */
+        .resource-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .resource-link:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* 页面导航 */
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .nav-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                justify-content: center;
+            }
+            
+            .subpage-title h1 {
+                font-size: 1.7rem;
+            }
+            
+            .tech-art-showcase, .case-studies {
+                grid-template-columns: 1fr;
+            }
+            
+            .physics-demo-container, .animation-demo {
+                height: 300px;
+            }
+            
+            .page-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="subpage-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 返回主页
+                </a>
+                
+                <div class="subpage-title">
+                    <h1>物理引擎模拟</h1>
+                    <p>2D/3D物理引擎实现与技术美术应用</p>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="#physics-demo"><i class="fas fa-cogs"></i> 演示</a>
+                    <a href="#tech-art"><i class="fas fa-palette"></i> 技术美术</a>
+                    <a href="#animation"><i class="fas fa-film"></i> 动画</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <!-- 项目概览 -->
+        <section class="page-section">
+            <h2 class="section-title">项目概览</h2>
+            
+            <div class="project-overview">
+                <div class="project-description">
+                    <p>这是一个基于Box2D的2D物理引擎实现，专为游戏开发设计，包含完整的碰撞检测、刚体动力学、关节系统和物理材质系统。该引擎采用模块化架构，性能优化良好，可轻松集成到不同的游戏项目中。</p>
+                    
+                    <p>除了基础的物理模拟，本项目还特别关注技术美术应用，包括GPU粒子系统、动态着色器效果、程序化动画和物理驱动的视觉反馈。这些技术美术元素能够极大提升游戏的视觉效果和沉浸感。</p>
+                    
+                    <p>本页面将展示物理引擎的核心代码、技术美术资源和动画演示，以及如何将这些技术应用于实际游戏开发中。</p>
+                </div>
+                
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">技术栈:</span>
+                        <span class="meta-value">TypeScript + WebGL</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">文件数量:</span>
+                        <span class="meta-value">15个</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">最后更新:</span>
+                        <span class="meta-value">2023-07-10</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">复杂度:</span>
+                        <span class="meta-value">高级</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">依赖项:</span>
+                        <span class="meta-value">无外部依赖</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">许可证:</span>
+                        <span class="meta-value">MIT</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 物理引擎演示 -->
+        <section class="page-section" id="physics-demo">
+            <h2 class="section-title">物理引擎演示</h2>
+            
+            <div class="physics-demo-container" id="physicsDemo">
+                <!-- 物理对象将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="demo-controls">
+                <button class="demo-button" onclick="addBall()">
+                    <i class="fas fa-plus-circle"></i> 添加球体
+                </button>
+                <button class="demo-button" onclick="addBox()">
+                    <i class="fas fa-square"></i> 添加方块
+                </button>
+                <button class="demo-button" onclick="toggleGravity()">
+                    <i class="fas fa-weight-hanging"></i> 切换重力
+                </button>
+                <button class="demo-button" onclick="applyExplosion()">
+                    <i class="fas fa-bomb"></i> 应用爆炸力
+                </button>
+                <button class="demo-button reset" onclick="resetDemo()">
+                    <i class="fas fa-redo"></i> 重置演示
+                </button>
+            </div>
+            
+            <p>这个演示展示了基本的物理模拟，包括重力、碰撞检测、刚体动力学和力的应用。您可以通过按钮添加不同类型的物理对象并观察它们的物理行为。</p>
+        </section>
+
+        <!-- 代码演示 -->
+        <section class="page-section">
+            <h2 class="section-title">核心代码演示</h2>
+            
+            <h3 class="section-subtitle">物理引擎核心 (PhysicsEngine.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>game-scripts/physics-engine/PhysicsEngine.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code1')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code1">/**
+ * 2D物理引擎核心
+ * 基于Box2D的简化实现，包含碰撞检测和刚体动力学
+ */
+class PhysicsEngine {
+    constructor(gravity = { x: 0, y: 9.8 }) {
+        this.gravity = gravity;
+        this.world = {
+            bodies: [],
+            joints: [],
+            colliders: []
+        };
+        
+        this.timeStep = 1 / 60; // 60 FPS
+        this.velocityIterations = 6;
+        this.positionIterations = 2;
+        
+        this.collisionCallbacks = new Map();
+        
+        console.log("物理引擎初始化完成");
+    }
+    
+    /**
+     * 创建刚体
+     */
+    createBody(position, bodyType = 'dynamic', options = {}) {
+        const body = {
+            id: `body_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            position: { ...position },
+            velocity: { x: 0, y: 0 },
+            angularVelocity: 0,
+            rotation: 0,
+            bodyType: bodyType, // 'static', 'dynamic', 'kinematic'
+            mass: options.mass || 1,
+            inertia: options.inertia || 1,
+            restitution: options.restitution || 0.2, // 弹性系数
+            friction: options.friction || 0.3, // 摩擦系数
+            shape: options.shape || 'circle',
+            shapeData: options.shapeData || { radius: 20 },
+            isAwake: true,
+            userData: options.userData || null
+        };
+        
+        // 计算逆质量和逆惯性
+        body.invMass = body.mass > 0 ? 1 / body.mass : 0;
+        body.invInertia = body.inertia > 0 ? 1 / body.inertia : 0;
+        
+        this.world.bodies.push(body);
+        return body;
+    }
+    
+    /**
+     * 应用力到刚体
+     */
+    applyForce(body, force, point = null) {
+        if (body.bodyType !== 'dynamic') return;
+        
+        // 线性力
+        body.velocity.x += force.x * body.invMass * this.timeStep;
+        body.velocity.y += force.y * body.invMass * this.timeStep;
+        
+        // 如果点不为空，计算扭矩
+        if (point) {
+            const r = {
+                x: point.x - body.position.x,
+                y: point.y - body.position.y
+            };
+            
+            // 扭矩 = r × F
+            const torque = r.x * force.y - r.y * force.x;
+            body.angularVelocity += torque * body.invInertia * this.timeStep;
+        }
+        
+        body.isAwake = true;
+    }
+    
+    /**
+     * 应用冲量到刚体
+     */
+    applyImpulse(body, impulse, point = null) {
+        if (body.bodyType !== 'dynamic') return;
+        
+        // 线性冲量
+        body.velocity.x += impulse.x * body.invMass;
+        body.velocity.y += impulse.y * body.invMass;
+        
+        // 如果点不为空，计算角冲量
+        if (point) {
+            const r = {
+                x: point.x - body.position.x,
+                y: point.y - body.position.y
+            };
+            
+            // 角冲量 = r × impulse
+            const angularImpulse = r.x * impulse.y - r.y * impulse.x;
+            body.angularVelocity += angularImpulse * body.invInertia;
+        }
+        
+        body.isAwake = true;
+    }
+    
+    /**
+     * 更新物理世界
+     */
+    update(deltaTime) {
+        const dt = Math.min(deltaTime, 0.1); // 限制最大时间步长
+        
+        // 应用重力
+        this.world.bodies.forEach(body => {
+            if (body.bodyType === 'dynamic' && body.isAwake) {
+                body.velocity.x += this.gravity.x * dt;
+                body.velocity.y += this.gravity.y * dt;
+            }
+        });
+        
+        // 积分位置
+        this.world.bodies.forEach(body => {
+            if (body.bodyType !== 'static' && body.isAwake) {
+                body.position.x += body.velocity.x * dt;
+                body.position.y += body.velocity.y * dt;
+                body.rotation += body.angularVelocity * dt;
+                
+                // 应用阻尼
+                body.velocity.x *= 0.99;
+                body.velocity.y *= 0.99;
+                body.angularVelocity *= 0.99;
+                
+                // 如果速度非常小，让物体进入睡眠状态
+                const speedSq = body.velocity.x * body.velocity.x + 
+                              body.velocity.y * body.velocity.y;
+                if (speedSq < 0.01 && Math.abs(body.angularVelocity) < 0.01) {
+                    body.isAwake = false;
+                }
+            }
+        });
+        
+        // 碰撞检测和解决
+        this.detectCollisions();
+        
+        // 解决约束
+        this.solveConstraints();
+    }
+    
+    /**
+     * 碰撞检测
+     */
+    detectCollisions() {
+        const bodies = this.world.bodies.filter(b => b.isAwake);
+        
+        for (let i = 0; i < bodies.length; i++) {
+            for (let j = i + 1; j < bodies.length; j++) {
+                const bodyA = bodies[i];
+                const bodyB = bodies[j];
+                
+                // 跳过静态-静态碰撞检测
+                if (bodyA.bodyType === 'static' && bodyB.bodyType === 'static') {
+                    continue;
+                }
+                
+                const collision = this.checkCollision(bodyA, bodyB);
+                
+                if (collision.collided) {
+                    this.resolveCollision(bodyA, bodyB, collision);
+                    
+                    // 触发碰撞回调
+                    this.triggerCollisionCallbacks(bodyA, bodyB, collision);
+                }
+            }
+        }
+    }
+    
+    /**
+     * 检查两个刚体是否碰撞
+     */
+    checkCollision(bodyA, bodyB) {
+        // 简化版碰撞检测，实际实现需要处理不同形状
+        const dx = bodyB.position.x - bodyA.position.x;
+        const dy = bodyB.position.y - bodyA.position.y;
+        
+        let distance;
+        
+        if (bodyA.shape === 'circle' && bodyB.shape === 'circle') {
+            const rA = bodyA.shapeData.radius;
+            const rB = bodyB.shapeData.radius;
+            const distanceSq = dx * dx + dy * dy;
+            const radiusSum = rA + rB;
+            
+            distance = Math.sqrt(distanceSq);
+            
+            return {
+                collided: distance < radiusSum,
+                normal: { x: dx / distance, y: dy / distance },
+                depth: radiusSum - distance,
+                point: {
+                    x: bodyA.position.x + (dx / distance) * rA,
+                    y: bodyA.position.y + (dy / distance) * rA
+                }
+            };
+        }
+        
+        // 其他形状检测...
+        return { collided: false };
+    }
+    
+    /**
+     * 解决碰撞
+     */
+    resolveCollision(bodyA, bodyB, collision) {
+        const normal = collision.normal;
+        const depth = collision.depth;
+        
+        // 计算相对速度
+        const rv = {
+            x: bodyB.velocity.x - bodyA.velocity.x,
+            y: bodyB.velocity.y - bodyA.velocity.y
+        };
+        
+        // 计算相对速度在法线上的投影
+        const velAlongNormal = rv.x * normal.x + rv.y * normal.y;
+        
+        // 如果物体正在分离，不需要解决碰撞
+        if (velAlongNormal > 0) return;
+        
+        // 计算恢复系数
+        const e = Math.min(bodyA.restitution, bodyB.restitution);
+        
+        // 计算冲量标量
+        let j = -(1 + e) * velAlongNormal;
+        j /= bodyA.invMass + bodyB.invMass;
+        
+        // 应用冲量
+        const impulse = {
+            x: j * normal.x,
+            y: j * normal.y
+        };
+        
+        bodyA.velocity.x -= impulse.x * bodyA.invMass;
+        bodyA.velocity.y -= impulse.y * bodyA.invMass;
+        bodyB.velocity.x += impulse.x * bodyB.invMass;
+        bodyB.velocity.y += impulse.y * bodyB.invMass;
+        
+        // 位置修正（防止物体相互穿透）
+        const percent = 0.2; // 通常为0.2到0.8
+        const slop = 0.01; // 通常为0.01到0.1
+        const correction = Math.max(depth - slop, 0) / (bodyA.invMass + bodyB.invMass) * percent;
+        
+        const correctionVec = {
+            x: correction * normal.x,
+            y: correction * normal.y
+        };
+        
+        bodyA.position.x -= correctionVec.x * bodyA.invMass;
+        bodyA.position.y -= correctionVec.y * bodyA.invMass;
+        bodyB.position.x += correctionVec.x * bodyB.invMass;
+        bodyB.position.y += correctionVec.y * bodyB.invMass;
+        
+        // 唤醒物体
+        bodyA.isAwake = true;
+        bodyB.isAwake = true;
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 技术美术展示 -->
+        <section class="page-section tech-art-section" id="tech-art">
+            <h2 class="section-title">技术美术资源与应用</h2>
+            
+            <p>技术美术(Tech Art)是连接美术与编程的桥梁，专注于通过技术手段实现高质量的视觉效果。以下是物理引擎相关的技术美术资源和应用案例。</p>
+            
+            <div class="tech-art-showcase">
+                <div class="tech-art-card">
+                    <div class="tech-art-visual" id="particleDemo1" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+                        <!-- 粒子效果将通过JavaScript生成 -->
+                    </div>
+                    <div class="tech-art-content">
+                        <h4>GPU粒子系统</h4>
+                        <p>基于WebGL的GPU粒子系统，支持数百万粒子的实时渲染。粒子可以受物理力场影响，实现火焰、烟雾、魔法等特效。</p>
+                        <button class="demo-button" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="startParticleDemo('particleDemo1')">
+                            <i class="fas fa-play"></i> 演示效果
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="tech-art-card">
+                    <div class="tech-art-visual" style="background: linear-gradient(135deg, #0f3460, #533483); display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(from 0deg, #ff9a9e, #fad0c4, #fad0c4, #a1c4fd, #c2e9fb, #ff9a9e); animation: rotate 3s linear infinite;"></div>
+                    </div>
+                    <div class="tech-art-content">
+                        <h4>动态着色器</h4>
+                        <p>使用GLSL编写的实时着色器，实现水面反射、材质折射、动态光照和后期处理效果。所有效果都基于物理渲染(PBR)原则。</p>
+                    </div>
+                </div>
+                
+                <div class="tech-art-card">
+                    <div class="tech-art-visual" style="background: linear-gradient(135deg, #1e3c72, #2a5298); display: flex; align-items: center; justify-content: center;">
+                        <div style="width: 140px; height: 140px; position: relative;">
+                            <div style="width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #ff7e5f, #feb47b); box-shadow: 0 0 30px rgba(255, 126, 95, 0.7);"></div>
+                        </div>
+                    </div>
+                    <div class="tech-art-content">
+                        <h4>程序化纹理生成</h4>
+                        <p>通过算法实时生成纹理，减少美术资源占用。支持噪声函数、分形算法和物理模拟来创建自然纹理（如云层、地形、火焰）。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">着色器代码示例 (water.frag)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>tech-art/shaders/water.frag</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code2')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="glsl" id="code2">/**
+ * 水面着色器 - 片段着色器
+ * 实现动态水面效果，包括反射、折射和波纹
+ */
+precision mediump float;
+
+uniform float uTime;
+uniform vec2 uResolution;
+uniform sampler2D uReflectionTexture;
+uniform sampler2D uRefractionTexture;
+uniform sampler2D uNormalMap;
+
+varying vec2 vUv;
+varying vec3 vPosition;
+
+void main() {
+    // 计算UV坐标，考虑时间偏移创建动画效果
+    vec2 uv = vUv;
+    uv.x += sin(uTime * 0.5 + vPosition.y * 2.0) * 0.02;
+    uv.y += cos(uTime * 0.3 + vPosition.x * 2.0) * 0.01;
+    
+    // 从法线贴图获取法线向量
+    vec3 normal = texture2D(uNormalMap, uv * 2.0).rgb * 2.0 - 1.0;
+    
+    // 添加基于时间的动态波纹
+    float waveStrength = 0.1;
+    float waveSpeed = 1.5;
+    float waveFrequency = 10.0;
+    
+    vec2 waveOffset = vec2(
+        sin(uTime * waveSpeed + uv.y * waveFrequency) * waveStrength,
+        cos(uTime * waveSpeed + uv.x * waveFrequency) * waveStrength
+    );
+    
+    // 计算反射和折射UV
+    vec2 reflectionUV = vec2(uv.x, 1.0 - uv.y) + normal.xy * 0.02 + waveOffset * 0.5;
+    vec2 refractionUV = uv + normal.xy * 0.01 + waveOffset;
+    
+    // 采样反射和折射纹理
+    vec4 reflectionColor = texture2D(uReflectionTexture, reflectionUV);
+    vec4 refractionColor = texture2D(uRefractionTexture, refractionUV);
+    
+    // 计算菲涅尔效应（视角相关的反射/折射混合）
+    vec3 viewDir = normalize(vPosition);
+    float fresnel = pow(1.0 - dot(viewDir, normal), 3.0);
+    fresnel = clamp(fresnel * 2.0, 0.2, 0.8);
+    
+    // 混合反射和折射颜色
+    vec4 waterColor = mix(refractionColor, reflectionColor, fresnel);
+    
+    // 添加水的基础颜色
+    vec4 baseWaterColor = vec4(0.1, 0.3, 0.5, 0.8);
+    waterColor = mix(waterColor, baseWaterColor, 0.3);
+    
+    // 添加高光反射
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
+    float specular = pow(max(dot(reflect(-lightDir, normal), viewDir), 0.0), 32.0);
+    waterColor.rgb += vec3(0.8, 0.9, 1.0) * specular * 0.5;
+    
+    // 添加边缘泡沫效果
+    float foam = sin(uTime * 2.0 + uv.x * 20.0) * 0.5 + 0.5;
+    foam *= sin(uTime * 1.5 + uv.y * 15.0) * 0.5 + 0.5;
+    foam = pow(foam, 3.0) * 0.1;
+    
+    // 靠近岸边的地方增加泡沫
+    float shoreDistance = length(vUv - vec2(0.5));
+    foam *= (1.0 - shoreDistance * 2.0);
+    foam = clamp(foam, 0.0, 0.2);
+    
+    waterColor.rgb += vec3(1.0) * foam;
+    
+    // 最终输出
+    gl_FragColor = waterColor;
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 动画演示 -->
+        <section class="page-section animation-section" id="animation">
+            <h2 class="section-title">物理驱动动画演示</h2>
+            
+            <p>物理驱动的动画使用物理引擎来计算物体的运动，而不是传统的关键帧动画。这种方法可以创建更加自然和交互性强的动画效果。</p>
+            
+            <div class="animation-demo" id="animationDemo">
+                <!-- 动画对象将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="demo-controls">
+                <button class="demo-button" onclick="startAnimationDemo()" style="background-color: var(--animation-color);">
+                    <i class="fas fa-play"></i> 开始动画
+                </button>
+                <button class="demo-button" onclick="addRagdoll()">
+                    <i class="fas fa-user"></i> 添加布娃娃
+                </button>
+                <button class="demo-button" onclick="addSoftBody()">
+                    <i class="fas fa-cloud"></i> 添加软体
+                </button>
+                <button class="demo-button reset" onclick="resetAnimationDemo()">
+                    <i class="fas fa-redo"></i> 重置动画
+                </button>
+            </div>
+            
+            <h3 class="section-subtitle">布娃娃系统 (RagdollSystem.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>game-scripts/physics-engine/RagdollSystem.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code3')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code3">/**
+ * 布娃娃物理系统
+ * 用于角色死亡、被击飞等物理动画
+ */
+class RagdollSystem {
+    constructor(physicsEngine) {
+        this.physicsEngine = physicsEngine;
+        this.ragdolls = new Map();
+    }
+    
+    /**
+     * 创建布娃娃
+     */
+    createRagdoll(position, config = {}) {
+        const ragdollId = `ragdoll_${Date.now()}`;
+        const parts = [];
+        
+        // 身体各部分配置
+        const bodyParts = [
+            { name: 'head', shape: 'circle', radius: 15, offset: { x: 0, y: -60 } },
+            { name: 'torso', shape: 'box', width: 30, height: 50, offset: { x: 0, y: -25 } },
+            { name: 'leftArm', shape: 'box', width: 12, height: 35, offset: { x: -25, y: -40 } },
+            { name: 'rightArm', shape: 'box', width: 12, height: 35, offset: { x: 25, y: -40 } },
+            { name: 'leftLeg', shape: 'box', width: 15, height: 40, offset: { x: -12, y: 20 } },
+            { name: 'rightLeg', shape: 'box', width: 15, height: 40, offset: { x: 12, y: 20 } }
+        ];
+        
+        // 创建身体各部分
+        bodyParts.forEach(part => {
+            const partPosition = {
+                x: position.x + part.offset.x,
+                y: position.y + part.offset.y
+            };
+            
+            const shapeData = part.shape === 'circle' 
+                ? { radius: part.radius } 
+                : { width: part.width, height: part.height };
+            
+            const body = this.physicsEngine.createBody(
+                partPosition,
+                'dynamic',
+                {
+                    shape: part.shape,
+                    shapeData: shapeData,
+                    mass: part.name === 'head' ? 3 : 5,
+                    restitution: 0.1,
+                    friction: 0.7,
+                    userData: { type: 'ragdoll', part: part.name }
+                }
+            );
+            
+            parts.push({
+                name: part.name,
+                body: body
+            });
+        });
+        
+        // 创建关节连接身体各部分
+        const joints = [];
+        
+        // 头部连接到躯干
+        const head = parts.find(p => p.name === 'head').body;
+        const torso = parts.find(p => p.name === 'torso').body;
+        joints.push(this.createJoint(head, torso, { x: 0, y: 10 }, { x: 0, y: -25 }));
+        
+        // 手臂连接到躯干
+        const leftArm = parts.find(p => p.name === 'leftArm').body;
+        joints.push(this.createJoint(torso, leftArm, { x: -15, y: -20 }, { x: 0, y: -15 }));
+        
+        const rightArm = parts.find(p => p.name === 'rightArm').body;
+        joints.push(this.createJoint(torso, rightArm, { x: 15, y: -20 }, { x: 0, y: -15 }));
+        
+        // 腿部连接到躯干
+        const leftLeg = parts.find(p => p.name === 'leftLeg').body;
+        joints.push(this.createJoint(torso, leftLeg, { x: -12, y: 25 }, { x: 0, y: -20 }));
+        
+        const rightLeg = parts.find(p => p.name === 'rightLeg').body;
+        joints.push(this.createJoint(torso, rightLeg, { x: 12, y: 25 }, { x: 0, y: -20 }));
+        
+        // 保存布娃娃
+        this.ragdolls.set(ragdollId, {
+            id: ragdollId,
+            parts: parts,
+            joints: joints,
+            isActive: true,
+            createdAt: Date.now()
+        });
+        
+        return ragdollId;
+    }
+    
+    /**
+     * 创建关节
+     */
+    createJoint(bodyA, bodyB, anchorA, anchorB) {
+        const joint = {
+            bodyA: bodyA,
+            bodyB: bodyB,
+            anchorA: anchorA,
+            anchorB: anchorB,
+            type: 'revolute', // 旋转关节
+            limits: { min: -Math.PI / 4, max: Math.PI / 4 },
+            stiffness: 0.9,
+            damping: 0.5
+        };
+        
+        this.physicsEngine.world.joints.push(joint);
+        return joint;
+    }
+    
+    /**
+     * 对布娃娃应用力
+     */
+    applyForceToRagdoll(ragdollId, force, point = null) {
+        const ragdoll = this.ragdolls.get(ragdollId);
+        if (!ragdoll || !ragdoll.isActive) return;
+        
+        // 对每个部分应用力
+        ragdoll.parts.forEach(part => {
+            this.physicsEngine.applyForce(part.body, force, point);
+        });
+    }
+    
+    /**
+     * 更新布娃娃系统
+     */
+    update(deltaTime) {
+        // 清理过期的布娃娃
+        const now = Date.now();
+        const maxLifetime = 30000; // 30秒
+        
+        this.ragdolls.forEach((ragdoll, id) => {
+            if (now - ragdoll.createdAt > maxLifetime) {
+                this.destroyRagdoll(id);
+            }
+        });
+    }
+    
+    /**
+     * 销毁布娃娃
+     */
+    destroyRagdoll(ragdollId) {
+        const ragdoll = this.ragdolls.get(ragdollId);
+        if (!ragdoll) return;
+        
+        // 从物理世界中移除身体和关节
+        ragdoll.parts.forEach(part => {
+            const index = this.physicsEngine.world.bodies.indexOf(part.body);
+            if (index > -1) {
+                this.physicsEngine.world.bodies.splice(index, 1);
+            }
+        });
+        
+        ragdoll.joints.forEach(joint => {
+            const index = this.physicsEngine.world.joints.indexOf(joint);
+            if (index > -1) {
+                this.physicsEngine.world.joints.splice(index, 1);
+            }
+        });
+        
+        // 从布娃娃系统中移除
+        this.ragdolls.delete(ragdollId);
+        
+        console.log(`布娃娃 ${ragdollId} 已销毁`);
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 文件结构 -->
+        <section class="page-section" id="file-structure">
+            <h2 class="section-title">文件结构</h2>
+            
+            <div class="file-structure">
+                <div class="file-tree">
+                    <ul>
+                        <li>game-scripts/physics-engine/
+                            <ul>
+                                <li class="js-file">PhysicsEngine.js (物理引擎核心)</li>
+                                <li class="js-file">CollisionDetection.js (碰撞检测)</li>
+                                <li class="js-file">RagdollSystem.js (布娃娃系统)</li>
+                                <li class="js-file">SoftBodySystem.js (软体物理)</li>
+                                <li class="js-file">FluidSimulation.js (流体模拟)</li>
+                                <li class="js-file">ConstraintSolver.js (约束求解器)</li>
+                                <li class="js-file">BroadPhase.js (广相碰撞检测)</li>
+                                <li class="js-file">NarrowPhase.js (窄相碰撞检测)</li>
+                                <li class="js-file">PhysicsMaterial.js (物理材质)</li>
+                                <li class="js-file">ForceGenerator.js (力场生成器)</li>
+                            </ul>
+                        </li>
+                        <li>tech-art/
+                            <ul>
+                                <li class="shader-file">water.frag (水面着色器)</li>
+                                <li class="shader-file">particle.vert (粒子顶点着色器)</li>
+                                <li class="shader-file">toon.frag (卡通着色器)</li>
+                                <li class="js-file">ParticleSystem.js (粒子系统)</li>
+                                <li class="js-file">ShaderManager.js (着色器管理器)</li>
+                                <li class="json-file">material-library.json (材质库)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p>物理引擎采用分层架构，将核心物理模拟、碰撞检测、约束求解等模块分离。技术美术资源与物理引擎紧密集成，实现物理驱动的视觉效果。</p>
+        </section>
+
+        <!-- 案例研究 -->
+        <section class="page-section" id="case-studies">
+            <h2 class="section-title">案例分析与使用示例</h2>
+            
+            <div class="case-studies">
+                <div class="case-card">
+                    <h4>平台游戏物理</h4>
+                    <p>实现平台游戏中的角色移动、跳跃、墙壁滑动和斜坡处理。包含完整的角色控制器和平台交互系统。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">2D物理</span>
+                        <span class="case-tag">平台游戏</span>
+                        <span class="case-tag">中级</span>
+                    </div>
+                </div>
+                
+                <div class="case-card">
+                    <h4>破坏系统</h4>
+                    <p>实现可破坏的环境物体，支持碎裂、变形和物理模拟碎片。使用有限元分析简化版计算破坏效果。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">破坏物理</span>
+                        <span class="case-tag tech-art">技术美术</span>
+                        <span class="case-tag">高级</span>
+                    </div>
+                </div>
+                
+                <div class="case-card">
+                    <h4>布料模拟</h4>
+                    <p>基于质点-弹簧模型的布料模拟，支持风场、碰撞和撕裂效果。可用于旗帜、角色服装等。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">软体物理</span>
+                        <span class="case-tag animation">动画</span>
+                        <span class="case-tag">高级</span>
+                    </div>
+                </div>
+                
+                <div class="case-card">
+                    <h4>车辆物理</h4>
+                    <p>实现基于物理的车辆系统，包括悬挂系统、轮胎摩擦、转向和加速。支持不同地形和驾驶条件。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">车辆物理</span>
+                        <span class="case-tag">中级</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 相关资源 -->
+        <section class="page-section">
+            <h2 class="section-title">相关资源与链接</h2>
+            
+            <p>以下是与物理引擎和技术美术相关的资源和文档链接：</p>
+            
+            <div class="resource-links">
+                <a href="https://github.com/yourusername/physics-engine" class="resource-link" target="_blank">
+                    <i class="fab fa-github"></i> 查看完整源代码
+                </a>
+                
+                <a href="../game-scripts/rpg-system.html" class="resource-link">
+                    <i class="fas fa-fist-raised"></i> RPG战斗系统
+                </a>
+                
+                <a href="../art-resources/visual-effects.html" class="resource-link">
+                    <i class="fas fa-fire"></i> 视觉特效资源
+                </a>
+                
+                <a href="https://threejs.org" class="resource-link" target="_blank">
+                    <i class="fas fa-cube"></i> Three.js 3D库
+                </a>
+                
+                <a href="https://www.shadertoy.com" class="resource-link" target="_blank">
+                    <i class="fas fa-palette"></i> Shadertoy 着色器社区
+                </a>
+            </div>
+        </section>
+
+        <!-- 页面导航 -->
+        <div class="page-navigation">
+            <a href="../index.html" class="nav-button">
+                <i class="fas fa-home"></i> 返回主页面
+            </a>
+            
+            <a href="inventory-system.html" class="nav-button">
+                下一个: 背包与物品系统 <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // 初始化代码高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            
+            // 初始化物理演示
+            initPhysicsDemo();
+            initAnimationDemo();
+        });
+        
+        /* ==================== 物理演示功能 ==================== */
+        let physicsObjects = [];
+        let platforms = [];
+        let gravityEnabled = true;
+        let animationId = null;
+        
+        function initPhysicsDemo() {
+            const container = document.getElementById('physicsDemo');
+            
+            // 创建平台
+            const platformWidth = container.offsetWidth - 100;
+            
+            // 底部平台
+            platforms.push({
+                element: createPhysicsElement('platform', platformWidth, 30, container.offsetWidth/2 - platformWidth/2, container.offsetHeight - 40),
+                type: 'platform',
+                width: platformWidth,
+                height: 30,
+                x: container.offsetWidth/2 - platformWidth/2,
+                y: container.offsetHeight - 40
+            });
+            
+            // 左侧平台
+            platforms.push({
+                element: createPhysicsElement('platform', 200, 20, 50, container.offsetHeight - 150),
+                type: 'platform',
+                width: 200,
+                height: 20,
+                x: 50,
+                y: container.offsetHeight - 150
+            });
+            
+            // 右侧平台
+            platforms.push({
+                element: createPhysicsElement('platform', 200, 20, container.offsetWidth - 250, container.offsetHeight - 220),
+                type: 'platform',
+                width: 200,
+                height: 20,
+                x: container.offsetWidth - 250,
+                y: container.offsetHeight - 220
+            });
+            
+            // 初始添加几个球体
+            for (let i = 0; i < 3; i++) {
+                addBall();
+            }
+            
+            // 启动动画循环
+            animatePhysics();
+        }
+        
+        function createPhysicsElement(type, width, height, x, y) {
+            const element = document.createElement('div');
+            element.className = `physics-object ${type}`;
+            element.style.width = `${width}px`;
+            element.style.height = `${height}px`;
+            element.style.left = `${x}px`;
+            element.style.top = `${y}px`;
+            
+            if (type === 'ball') {
+                element.textContent = Math.floor(Math.random() * 10) + 1;
+            } else if (type === 'box') {
+                element.textContent = '□';
+            }
+            
+            document.getElementById('physicsDemo').appendChild(element);
+            return element;
+        }
+        
+        function addBall() {
+            const container = document.getElementById('physicsDemo');
+            const radius = 20 + Math.random() * 20;
+            const x = 50 + Math.random() * (container.offsetWidth - 100);
+            const y = 30;
+            
+            const element = createPhysicsElement('ball', radius * 2, radius * 2, x - radius, y - radius);
+            
+            physicsObjects.push({
+                element: element,
+                type: 'ball',
+                radius: radius,
+                x: x,
+                y: y,
+                velocityX: (Math.random() - 0.5) * 4,
+                velocityY: 0,
+                gravity: 0.3,
+                friction: 0.99,
+                restitution: 0.7
+            });
+        }
+        
+        function addBox() {
+            const container = document.getElementById('physicsDemo');
+            const size = 30 + Math.random() * 30;
+            const x = 50 + Math.random() * (container.offsetWidth - 100);
+            const y = 30;
+            
+            const element = createPhysicsElement('box', size, size, x - size/2, y - size/2);
+            
+            physicsObjects.push({
+                element: element,
+                type: 'box',
+                width: size,
+                height: size,
+                x: x,
+                y: y,
+                velocityX: (Math.random() - 0.5) * 4,
+                velocityY: 0,
+                rotation: 0,
+                angularVelocity: (Math.random() - 0.5) * 0.1,
+                gravity: 0.3,
+                friction: 0.98,
+                restitution: 0.5
+            });
+        }
+        
+        function toggleGravity() {
+            gravityEnabled = !gravityEnabled;
+            const button = event.target.closest('.demo-button');
+            button.innerHTML = gravityEnabled ? 
+                '<i class="fas fa-weight-hanging"></i> 关闭重力' : 
+                '<i class="fas fa-weight-hanging"></i> 开启重力';
+        }
+        
+        function applyExplosion() {
+            const centerX = document.getElementById('physicsDemo').offsetWidth / 2;
+            const centerY = 200;
+            
+            physicsObjects.forEach(obj => {
+                const dx = obj.x - centerX;
+                const dy = obj.y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 200) {
+                    const force = 10 / (distance / 50 + 1);
+                    obj.velocityX += (dx / distance) * force;
+                    obj.velocityY += (dy / distance) * force;
+                }
+            });
+            
+            // 添加爆炸视觉效果
+            const demoContainer = document.getElementById('physicsDemo');
+            const explosion = document.createElement('div');
+            explosion.style.position = 'absolute';
+            explosion.style.left = `${centerX - 50}px`;
+            explosion.style.top = `${centerY - 50}px`;
+            explosion.style.width = '100px';
+            explosion.style.height = '100px';
+            explosion.style.borderRadius = '50%';
+            explosion.style.background = 'radial-gradient(circle, rgba(255,100,0,0.8) 0%, rgba(255,200,0,0.6) 50%, transparent 70%)';
+            explosion.style.zIndex = '10';
+            explosion.style.pointerEvents = 'none';
+            
+            demoContainer.appendChild(explosion);
+            
+            // 动画效果
+            let scale = 1;
+            let opacity = 1;
+            function animateExplosion() {
+                scale += 0.1;
+                opacity -= 0.05;
+                
+                explosion.style.transform = `scale(${scale})`;
+                explosion.style.opacity = opacity;
+                
+                if (opacity > 0) {
+                    requestAnimationFrame(animateExplosion);
+                } else {
+                    explosion.remove();
+                }
+            }
+            
+            animateExplosion();
+        }
+        
+        function resetDemo() {
+            physicsObjects.forEach(obj => {
+                obj.element.remove();
+            });
+            
+            physicsObjects = [];
+            
+            // 重新初始化
+            setTimeout(() => {
+                initPhysicsDemo();
+            }, 100);
+        }
+        
+        function animatePhysics() {
+            const container = document.getElementById('physicsDemo');
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            physicsObjects.forEach(obj => {
+                // 应用重力
+                if (gravityEnabled) {
+                    obj.velocityY += obj.gravity;
+                }
+                
+                // 应用速度
+                obj.x += obj.velocityX;
+                obj.y += obj.velocityY;
+                
+                // 应用角速度（仅方块）
+                if (obj.angularVelocity) {
+                    obj.rotation += obj.angularVelocity;
+                    obj.element.style.transform = `rotate(${obj.rotation}rad)`;
+                }
+                
+                // 边界碰撞检测
+                if (obj.type === 'ball') {
+                    // 球体边界碰撞
+                    if (obj.x - obj.radius < 0) {
+                        obj.x = obj.radius;
+                        obj.velocityX = Math.abs(obj.velocityX) * obj.restitution;
+                    } else if (obj.x + obj.radius > containerWidth) {
+                        obj.x = containerWidth - obj.radius;
+                        obj.velocityX = -Math.abs(obj.velocityX) * obj.restitution;
+                    }
+                    
+                    if (obj.y - obj.radius < 0) {
+                        obj.y = obj.radius;
+                        obj.velocityY = Math.abs(obj.velocityY) * obj.restitution;
+                    } else if (obj.y + obj.radius > containerHeight) {
+                        obj.y = containerHeight - obj.radius;
+                        obj.velocityY = -Math.abs(obj.velocityY) * obj.restitution;
+                    }
+                } else if (obj.type === 'box') {
+                    // 方块边界碰撞
+                    const halfWidth = obj.width / 2;
+                    const halfHeight = obj.height / 2;
+                    
+                    if (obj.x - halfWidth < 0) {
+                        obj.x = halfWidth;
+                        obj.velocityX = Math.abs(obj.velocityX) * obj.restitution;
+                    } else if (obj.x + halfWidth > containerWidth) {
+                        obj.x = containerWidth - halfWidth;
+                        obj.velocityX = -Math.abs(obj.velocityX) * obj.restitution;
+                    }
+                    
+                    if (obj.y - halfHeight < 0) {
+                        obj.y = halfHeight;
+                        obj.velocityY = Math.abs(obj.velocityY) * obj.restitution;
+                    } else if (obj.y + halfHeight > containerHeight) {
+                        obj.y = containerHeight - halfHeight;
+                        obj.velocityY = -Math.abs(obj.velocityY) * obj.restitution;
+                    }
+                }
+                
+                // 平台碰撞检测
+                platforms.forEach(platform => {
+                    if (obj.type === 'ball') {
+                        // 球体与平台碰撞
+                        const closestX = Math.max(platform.x, Math.min(obj.x, platform.x + platform.width));
+                        const closestY = Math.max(platform.y, Math.min(obj.y, platform.y + platform.height));
+                        
+                        const distanceX = obj.x - closestX;
+                        const distanceY = obj.y - closestY;
+                        const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+                        
+                        if (distanceSquared < obj.radius * obj.radius) {
+                            // 计算碰撞法线
+                            const distance = Math.sqrt(distanceSquared);
+                            const normalX = distanceX / distance;
+                            const normalY = distanceY / distance;
+                            
+                            // 将球体推出平台
+                            const overlap = obj.radius - distance;
+                            obj.x += normalX * overlap;
+                            obj.y += normalY * overlap;
+                            
+                            // 计算反射
+                            const dotProduct = obj.velocityX * normalX + obj.velocityY * normalY;
+                            obj.velocityX = (obj.velocityX - 2 * dotProduct * normalX) * obj.restitution;
+                            obj.velocityY = (obj.velocityY - 2 * dotProduct * normalY) * obj.restitution;
+                        }
+                    }
+                });
+                
+                // 应用摩擦
+                obj.velocityX *= obj.friction;
+                obj.velocityY *= obj.friction;
+                if (obj.angularVelocity) {
+                    obj.angularVelocity *= obj.friction;
+                }
+                
+                // 更新元素位置
+                if (obj.type === 'ball') {
+                    obj.element.style.left = `${obj.x - obj.radius}px`;
+                    obj.element.style.top = `${obj.y - obj.radius}px`;
+                } else if (obj.type === 'box') {
+                    obj.element.style.left = `${obj.x - obj.width/2}px`;
+                    obj.element.style.top = `${obj.y - obj.height/2}px`;
+                }
+            });
+            
+            // 物体间碰撞检测（简化版）
+            for (let i = 0; i < physicsObjects.length; i++) {
+                for (let j = i + 1; j < physicsObjects.length; j++) {
+                    const objA = physicsObjects[i];
+                    const objB = physicsObjects[j];
+                    
+                    if (objA.type === 'ball' && objB.type === 'ball') {
+                        // 球体与球体碰撞
+                        const dx = objB.x - objA.x;
+                        const dy = objB.y - objA.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const minDistance = objA.radius + objB.radius;
+                        
+                        if (distance < minDistance && distance > 0) {
+                            // 碰撞法线
+                            const normalX = dx / distance;
+                            const normalY = dy / distance;
+                            
+                            // 将球体分开
+                            const overlap = minDistance - distance;
+                            objA.x -= normalX * overlap * 0.5;
+                            objA.y -= normalY * overlap * 0.5;
+                            objB.x += normalX * overlap * 0.5;
+                            objB.y += normalY * overlap * 0.5;
+                            
+                            // 计算相对速度
+                            const relativeVelocityX = objB.velocityX - objA.velocityX;
+                            const relativeVelocityY = objB.velocityY - objA.velocityY;
+                            
+                            // 计算相对速度在法线上的投影
+                            const velocityAlongNormal = relativeVelocityX * normalX + relativeVelocityY * normalY;
+                            
+                            // 如果物体正在分离，跳过
+                            if (velocityAlongNormal > 0) continue;
+                            
+                            // 计算恢复系数（使用两个物体恢复系数的平均值）
+                            const restitution = (objA.restitution + objB.restitution) / 2;
+                            
+                            // 计算冲量标量
+                            let impulseScalar = -(1 + restitution) * velocityAlongNormal;
+                            impulseScalar /= 2; // 假设质量相等
+                            
+                            // 应用冲量
+                            objA.velocityX -= impulseScalar * normalX;
+                            objA.velocityY -= impulseScalar * normalY;
+                            objB.velocityX += impulseScalar * normalX;
+                            objB.velocityY += impulseScalar * normalY;
+                        }
+                    }
+                }
+            }
+            
+            animationId = requestAnimationFrame(animatePhysics);
+        }
+        
+        /* ==================== 粒子系统演示 ==================== */
+        function startParticleDemo(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            // 创建画布
+            const canvas = document.createElement('canvas');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            container.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            
+            // 创建粒子
+            const particles = [];
+            const particleCount = 150;
+            
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: 2 + Math.random() * 4,
+                    speedX: (Math.random() - 0.5) * 2,
+                    speedY: (Math.random() - 0.5) * 2,
+                    color: `hsl(${Math.random() * 60 + 180}, 100%, 70%)`,
+                    life: 1,
+                    decay: 0.002 + Math.random() * 0.005
+                });
+            }
+            
+            // 动画循环
+            let particleAnimationId;
+            
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 绘制粒子
+                particles.forEach(particle => {
+                    // 更新位置
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    // 边界检查
+                    if (particle.x < 0 || particle.x > canvas.width) particle.speedX *= -1;
+                    if (particle.y < 0 || particle.y > canvas.height) particle.speedY *= -1;
+                    
+                    // 更新生命周期
+                    particle.life -= particle.decay;
+                    
+                    // 绘制粒子
+                    ctx.globalAlpha = particle.life;
+                    ctx.fillStyle = particle.color;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // 如果粒子生命周期结束，重置
+                    if (particle.life <= 0) {
+                        particle.x = Math.random() * canvas.width;
+                        particle.y = Math.random() * canvas.height;
+                        particle.life = 1;
+                    }
+                });
+                
+                // 绘制连接线
+                ctx.globalAlpha = 0.3;
+                ctx.strokeStyle = 'rgba(100, 200, 255, 0.5)';
+                ctx.lineWidth = 1;
+                
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p1 = particles[i];
+                        const p2 = particles[j];
+                        
+                        const dx = p1.x - p2.x;
+                        const dy = p1.y - p2.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 80) {
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x, p1.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                
+                particleAnimationId = requestAnimationFrame(animateParticles);
+            }
+            
+            animateParticles();
+            
+            // 5秒后停止
+            setTimeout(() => {
+                cancelAnimationFrame(particleAnimationId);
+                container.innerHTML = '';
+                const demoText = document.createElement('div');
+                demoText.style.color = 'white';
+                demoText.style.fontSize = '1.2rem';
+                demoText.innerHTML = '<i class="fas fa-sync-alt"></i> 点击重新演示';
+                container.appendChild(demoText);
+            }, 5000);
+        }
+        
+        /* ==================== 动画演示功能 ==================== */
+        let animationObjects = [];
+        let animationRunning = false;
+        
+        function initAnimationDemo() {
+            // 初始化动画演示容器
+            const container = document.getElementById('animationDemo');
+            container.innerHTML = '';
+        }
+        
+        function startAnimationDemo() {
+            if (animationRunning) return;
+            
+            animationRunning = true;
+            const container = document.getElementById('animationDemo');
+            container.innerHTML = '';
+            
+            // 创建多个动画对象
+            for (let i = 0; i < 8; i++) {
+                const size = 20 + Math.random() * 30;
+                const x = 50 + Math.random() * (container.offsetWidth - 100);
+                const y = 50 + Math.random() * (container.offsetHeight - 100);
+                
+                const element = document.createElement('div');
+                element.className = 'animation-object';
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                element.style.left = `${x - size/2}px`;
+                element.style.top = `${y - size/2}px`;
+                element.textContent = i + 1;
+                
+                container.appendChild(element);
+                
+                animationObjects.push({
+                    element: element,
+                    x: x,
+                    y: y,
+                    size: size,
+                    velocityX: (Math.random() - 0.5) * 4,
+                    velocityY: (Math.random() - 0.5) * 4,
+                    gravity: 0.1,
+                    friction: 0.995
+                });
+            }
+            
+            // 启动动画
+            animateDemo();
+        }
+        
+        function animateDemo() {
+            if (!animationRunning) return;
+            
+            const container = document.getElementById('animationDemo');
+            const containerWidth = container.offsetWidth;
+            const containerHeight = container.offsetHeight;
+            
+            animationObjects.forEach(obj => {
+                // 应用物理
+                obj.velocityY += obj.gravity;
+                obj.x += obj.velocityX;
+                obj.y += obj.velocityY;
+                
+                // 边界碰撞
+                if (obj.x - obj.size/2 < 0) {
+                    obj.x = obj.size/2;
+                    obj.velocityX = Math.abs(obj.velocityX) * 0.8;
+                } else if (obj.x + obj.size/2 > containerWidth) {
+                    obj.x = containerWidth - obj.size/2;
+                    obj.velocityX = -Math.abs(obj.velocityX) * 0.8;
+                }
+                
+                if (obj.y - obj.size/2 < 0) {
+                    obj.y = obj.size/2;
+                    obj.velocityY = Math.abs(obj.velocityY) * 0.8;
+                } else if (obj.y + obj.size/2 > containerHeight) {
+                    obj.y = containerHeight - obj.size/2;
+                    obj.velocityY = -Math.abs(obj.velocityY) * 0.8;
+                }
+                
+                // 应用摩擦
+                obj.velocityX *= obj.friction;
+                obj.velocityY *= obj.friction;
+                
+                // 更新位置
+                obj.element.style.left = `${obj.x - obj.size/2}px`;
+                obj.element.style.top = `${obj.y - obj.size/2}px`;
+                
+                // 添加旋转效果
+                const rotation = (Date.now() / 1000) * 180 + obj.x + obj.y;
+                obj.element.style.transform = `rotate(${rotation}deg)`;
+                
+                // 脉动效果
+                const pulse = Math.sin(Date.now() / 500 + obj.x * 0.01) * 0.2 + 1;
+                obj.element.style.transform += ` scale(${pulse})`;
+            });
+            
+            requestAnimationFrame(animateDemo);
+        }
+        
+        function addRagdoll() {
+            if (!animationRunning) startAnimationDemo();
+            
+            const container = document.getElementById('animationDemo');
+            
+            // 创建简单的布娃娃结构
+            const centerX = 100 + Math.random() * (container.offsetWidth - 200);
+            const centerY = 100;
+            
+            // 创建身体各部分
+            const parts = ['头', '躯干', '左臂', '右臂', '左腿', '右腿'];
+            
+            parts.forEach((part, index) => {
+                const size = 20 + (part === '躯干' ? 10 : 0);
+                const angle = (index / parts.length) * Math.PI * 2;
+                const distance = part === '躯干' ? 0 : 40;
+                
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance + (part === '躯干' ? 0 : 30);
+                
+                const element = document.createElement('div');
+                element.className = 'animation-object';
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                element.style.left = `${x - size/2}px`;
+                element.style.top = `${y - size/2}px`;
+                element.textContent = part;
+                element.style.background = `linear-gradient(135deg, ${index % 2 === 0 ? '#ff9e00' : '#ff6f00'}, #ff3d00)`;
+                
+                container.appendChild(element);
+                
+                animationObjects.push({
+                    element: element,
+                    x: x,
+                    y: y,
+                    size: size,
+                    velocityX: (Math.random() - 0.5) * 6,
+                    velocityY: (Math.random() - 0.5) * 6,
+                    gravity: 0.2,
+                    friction: 0.99,
+                    part: part
+                });
+            });
+        }
+        
+        function addSoftBody() {
+            if (!animationRunning) startAnimationDemo();
+            
+            const container = document.getElementById('animationDemo');
+            const centerX = 100 + Math.random() * (container.offsetWidth - 200);
+            const centerY = 100;
+            const pointCount = 12;
+            const radius = 40;
+            
+            // 创建软体点
+            for (let i = 0; i < pointCount; i++) {
+                const angle = (i / pointCount) * Math.PI * 2;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+                const size = 12;
+                
+                const element = document.createElement('div');
+                element.className = 'animation-object';
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                element.style.left = `${x - size/2}px`;
+                element.style.top = `${y - size/2}px`;
+                element.textContent = '•';
+                element.style.background = 'linear-gradient(135deg, #00b4d8, #0096c7)';
+                element.style.fontSize = '24px';
+                element.style.display = 'flex';
+                element.style.alignItems = 'center';
+                element.style.justifyContent = 'center';
+                
+                container.appendChild(element);
+                
+                animationObjects.push({
+                    element: element,
+                    x: x,
+                    y: y,
+                    size: size,
+                    velocityX: (Math.random() - 0.5) * 3,
+                    velocityY: (Math.random() - 0.5) * 3,
+                    gravity: 0.15,
+                    friction: 0.995,
+                    originalX: x,
+                    originalY: y,
+                    stiffness: 0.05
+                });
+            }
+        }
+        
+        function resetAnimationDemo() {
+            animationRunning = false;
+            animationObjects = [];
+            initAnimationDemo();
+        }
+        
+        /* ==================== 通用功能 ==================== */
+        // 复制代码功能
+        function copyCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const button = event.target.closest('.copy-button');
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                button.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                button.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                alert('复制失败，请手动选择文本复制');
+            });
+        }
+        
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 页面卸载时清理动画
+        window.addEventListener('beforeunload', function() {
+            if (animationId) cancelAnimationFrame(animationId);
+        });
+    </script>
+</body>
+</html>
