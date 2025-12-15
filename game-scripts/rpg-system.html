@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG战斗系统 - BDCG模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --primary-color: #3a0ca3;
+            --secondary-color: #4361ee;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --code-bg: #282c34;
+            --card-bg: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部导航 */
+        .subpage-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .subpage-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .subpage-title h1 {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .subpage-title p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-actions a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .header-actions a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主要内容 */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .page-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+        }
+
+        .section-subtitle {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* 项目概览 */
+        .project-overview {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .project-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .project-description p {
+            margin-bottom: 1.2rem;
+            color: var(--dark-color);
+        }
+
+        .project-meta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .meta-value {
+            color: var(--gray-color);
+        }
+
+        /* 代码演示 */
+        .code-demo {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem 1.2rem;
+            color: #abb2bf;
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #abb2bf;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .hljs {
+            background: transparent;
+        }
+
+        /* 文件结构 */
+        .file-structure {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 1.5rem;
+        }
+
+        .file-tree li {
+            position: relative;
+            padding: 0.2rem 0;
+        }
+
+        .file-tree li:before {
+            content: "📁";
+            position: absolute;
+            left: -1.2rem;
+        }
+
+        .file-tree .file:before {
+            content: "📄";
+        }
+
+        .file-tree .js-file:before {
+            content: "📜";
+        }
+
+        .file-tree .json-file:before {
+            content: "📋";
+        }
+
+        /* 案例展示 */
+        .case-studies {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .case-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: var(--transition);
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .case-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+        }
+
+        .case-card p {
+            color: var(--gray-color);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .case-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .case-tag {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--secondary-color);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* 相关资源 */
+        .resource-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .resource-link:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* 页面导航 */
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .nav-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                justify-content: center;
+            }
+            
+            .subpage-title h1 {
+                font-size: 1.7rem;
+            }
+            
+            .case-studies {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="subpage-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 返回主页
+                </a>
+                
+                <div class="subpage-title">
+                    <h1>RPG战斗系统</h1>
+                    <p>完整的角色扮演游戏战斗系统实现</p>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="#code-demo"><i class="fas fa-code"></i> 代码</a>
+                    <a href="#file-structure"><i class="fas fa-folder"></i> 文件</a>
+                    <a href="#case-studies"><i class="fas fa-book"></i> 案例</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <!-- 项目概览 -->
+        <section class="page-section">
+            <h2 class="section-title">项目概览</h2>
+            
+            <div class="project-overview">
+                <div class="project-description">
+                    <p>这是一个完整的角色扮演游戏(RPG)战斗系统，采用模块化设计，包含角色属性、技能系统、装备管理、战斗计算和AI行为等核心组件。系统设计注重扩展性和灵活性，可以轻松集成到不同的游戏项目中。</p>
+                    
+                    <p>该系统实现了回合制战斗机制，支持多种伤害类型、状态效果、技能连携和队伍协作。代码采用现代JavaScript/TypeScript编写，具有良好的文档和清晰的API接口。</p>
+                    
+                    <p>本页面将展示核心代码片段、文件结构、使用案例以及相关资源链接，帮助您理解系统的设计思路和实现方法。</p>
+                </div>
+                
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">技术栈:</span>
+                        <span class="meta-value">JavaScript/TypeScript</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">文件数量:</span>
+                        <span class="meta-value">12个</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">最后更新:</span>
+                        <span class="meta-value">2023-08-15</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">复杂度:</span>
+                        <span class="meta-value">中等</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">依赖项:</span>
+                        <span class="meta-value">无外部依赖</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">许可证:</span>
+                        <span class="meta-value">MIT</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 代码演示 -->
+        <section class="page-section" id="code-demo">
+            <h2 class="section-title">核心代码演示</h2>
+            
+            <h3 class="section-subtitle">角色类 (Character.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>game-scripts/rpg-system/Character.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code1')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code1">/**
+ * RPG战斗系统 - 角色类
+ * 负责管理角色属性、装备、技能和状态
+ */
+class Character {
+    constructor(name, level = 1) {
+        this.name = name;
+        this.level = level;
+        this.exp = 0;
+        
+        // 基础属性
+        this.baseStats = {
+            hp: 100,
+            mp: 50,
+            attack: 10,
+            defense: 5,
+            magic: 8,
+            speed: 7
+        };
+        
+        // 当前状态
+        this.currentHP = this.baseStats.hp;
+        this.currentMP = this.baseStats.mp;
+        
+        // 装备
+        this.equipment = {
+            weapon: null,
+            armor: null,
+            accessory: null
+        };
+        
+        // 技能列表
+        this.skills = [];
+        
+        // 状态效果
+        this.statusEffects = [];
+        
+        // 战斗状态
+        this.isDefending = false;
+        this.isKnockedOut = false;
+    }
+    
+    /**
+     * 计算总属性（基础属性 + 装备加成）
+     */
+    get totalStats() {
+        let stats = {...this.baseStats};
+        
+        // 装备加成
+        Object.values(this.equipment).forEach(item => {
+            if (item && item.statBonus) {
+                Object.keys(item.statBonus).forEach(stat => {
+                    stats[stat] += item.statBonus[stat];
+                });
+            }
+        });
+        
+        // 状态效果加成/减益
+        this.statusEffects.forEach(effect => {
+            if (effect.statModifier) {
+                Object.keys(effect.statModifier).forEach(stat => {
+                    stats[stat] += effect.statModifier[stat];
+                });
+            }
+        });
+        
+        return stats;
+    }
+    
+    /**
+     * 使用技能
+     */
+    useSkill(skill, target) {
+        if (this.currentMP < skill.mpCost) {
+            console.log(`${this.name} 的MP不足，无法使用 ${skill.name}`);
+            return false;
+        }
+        
+        this.currentMP -= skill.mpCost;
+        console.log(`${this.name} 使用了 ${skill.name} 攻击 ${target.name}`);
+        
+        // 执行技能效果
+        return skill.execute(this, target);
+    }
+    
+    /**
+     * 受到伤害
+     */
+    takeDamage(damage) {
+        this.currentHP -= damage;
+        
+        if (this.currentHP <= 0) {
+            this.currentHP = 0;
+            this.isKnockedOut = true;
+            console.log(`${this.name} 被击败了!`);
+        }
+        
+        return damage;
+    }
+    
+    /**
+     * 添加状态效果
+     */
+    addStatusEffect(effect) {
+        this.statusEffects.push(effect);
+        console.log(`${this.name} 受到了 ${effect.name} 效果`);
+    }
+    
+    /**
+     * 移除状态效果
+     */
+    removeStatusEffect(effectName) {
+        this.statusEffects = this.statusEffects.filter(
+            effect => effect.name !== effectName
+        );
+    }
+}</code></pre>
+            </div>
+            
+            <h3 class="section-subtitle">战斗管理器 (BattleManager.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>game-scripts/rpg-system/BattleManager.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code2')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code2">/**
+ * RPG战斗系统 - 战斗管理器
+ * 负责管理战斗流程、回合顺序和胜负判断
+ */
+class BattleManager {
+    constructor(playerParty, enemyParty) {
+        this.playerParty = playerParty;
+        this.enemyParty = enemyParty;
+        this.allCharacters = [...playerParty, ...enemyParty];
+        
+        this.turnOrder = [];
+        this.currentTurn = 0;
+        this.battleLog = [];
+        
+        this.isBattleActive = true;
+        this.battleResult = null; // 'win', 'lose', 'flee'
+        
+        this.initBattle();
+    }
+    
+    /**
+     * 初始化战斗
+     */
+    initBattle() {
+        console.log("战斗开始!");
+        this.battleLog.push("战斗开始!");
+        
+        // 根据速度确定行动顺序
+        this.calculateTurnOrder();
+    }
+    
+    /**
+     * 计算回合顺序（基于速度属性）
+     */
+    calculateTurnOrder() {
+        this.turnOrder = [...this.allCharacters]
+            .sort((a, b) => b.totalStats.speed - a.totalStats.speed)
+            .filter(char => !char.isKnockedOut);
+    }
+    
+    /**
+     * 执行一个回合
+     */
+    executeTurn() {
+        if (!this.isBattleActive) return;
+        
+        const currentCharacter = this.turnOrder[this.currentTurn];
+        
+        if (currentCharacter.isKnockedOut) {
+            this.nextTurn();
+            return;
+        }
+        
+        // 决定行动（玩家控制或AI）
+        let action;
+        if (this.playerParty.includes(currentCharacter)) {
+            // 玩家角色 - 这里可以连接UI
+            action = this.getPlayerAction(currentCharacter);
+        } else {
+            // 敌人 - AI决策
+            action = this.getEnemyAction(currentCharacter);
+        }
+        
+        // 执行行动
+        this.executeAction(currentCharacter, action);
+        
+        // 检查战斗是否结束
+        this.checkBattleEnd();
+        
+        // 进入下一回合
+        this.nextTurn();
+    }
+    
+    /**
+     * 执行行动
+     */
+    executeAction(character, action) {
+        const {type, target, skill} = action;
+        
+        switch(type) {
+            case 'attack':
+                const damage = this.calculateDamage(character, target);
+                target.takeDamage(damage);
+                this.battleLog.push(
+                    `${character.name} 攻击了 ${target.name}, 造成 ${damage} 点伤害`
+                );
+                break;
+                
+            case 'skill':
+                character.useSkill(skill, target);
+                this.battleLog.push(
+                    `${character.name} 对 ${target.name} 使用了 ${skill.name}`
+                );
+                break;
+                
+            case 'defend':
+                character.isDefending = true;
+                this.battleLog.push(`${character.name} 采取了防御姿态`);
+                break;
+                
+            case 'item':
+                // 使用物品逻辑
+                this.battleLog.push(`${character.name} 使用了物品`);
+                break;
+        }
+    }
+    
+    /**
+     * 计算伤害
+     */
+    calculateDamage(attacker, defender) {
+        const attackPower = attacker.totalStats.attack;
+        const defensePower = defender.totalStats.defense;
+        const isDefending = defender.isDefending;
+        
+        // 基础伤害公式
+        let damage = attackPower * 2 - defensePower;
+        
+        // 防御状态减伤
+        if (isDefending) {
+            damage = Math.floor(damage * 0.5);
+            defender.isDefending = false; // 防御状态仅持续一轮
+        }
+        
+        // 随机波动 (80%-120%)
+        damage = Math.floor(damage * (0.8 + Math.random() * 0.4));
+        
+        // 确保最小伤害为1
+        return Math.max(1, damage);
+    }
+    
+    /**
+     * 检查战斗是否结束
+     */
+    checkBattleEnd() {
+        const allPlayersKnockedOut = this.playerParty.every(
+            char => char.isKnockedOut
+        );
+        const allEnemiesKnockedOut = this.enemyParty.every(
+            char => char.isKnockedOut
+        );
+        
+        if (allPlayersKnockedOut) {
+            this.isBattleActive = false;
+            this.battleResult = 'lose';
+            this.battleLog.push("战斗失败...");
+        } else if (allEnemiesKnockedOut) {
+            this.isBattleActive = false;
+            this.battleResult = 'win';
+            this.battleLog.push("战斗胜利!");
+        }
+    }
+    
+    /**
+     * 进入下一回合
+     */
+    nextTurn() {
+        this.currentTurn = (this.currentTurn + 1) % this.turnOrder.length;
+        
+        // 如果当前角色被击败，跳过
+        if (this.turnOrder[this.currentTurn].isKnockedOut) {
+            this.nextTurn();
+        }
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 文件结构 -->
+        <section class="page-section" id="file-structure">
+            <h2 class="section-title">文件结构</h2>
+            
+            <div class="file-structure">
+                <div class="file-tree">
+                    <ul>
+                        <li>game-scripts/rpg-system/
+                            <ul>
+                                <li class="js-file">Character.js (角色类)</li>
+                                <li class="js-file">BattleManager.js (战斗管理器)</li>
+                                <li class="js-file">Skill.js (技能系统)</li>
+                                <li class="js-file">Equipment.js (装备系统)</li>
+                                <li class="js-file">StatusEffect.js (状态效果)</li>
+                                <li class="js-file">Inventory.js (背包系统)</li>
+                                <li class="js-file">PartyManager.js (队伍管理)</li>
+                                <li class="js-file">AIController.js (AI控制器)</li>
+                                <li class="json-file">skills.json (技能数据)</li>
+                                <li class="json-file">items.json (物品数据)</li>
+                                <li class="json-file">enemies.json (敌人数据)</li>
+                                <li class="file">README.md (说明文档)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p>所有文件都采用模块化设计，每个文件负责单一功能，便于维护和扩展。数据文件(JSON)与代码逻辑分离，方便游戏内容的修改和本地化。</p>
+        </section>
+
+        <!-- 案例研究 -->
+        <section class="page-section" id="case-studies">
+            <h2 class="section-title">案例分析与使用示例</h2>
+            
+            <div class="case-studies">
+                <div class="case-card">
+                    <h4>基础战斗实现</h4>
+                    <p>创建一个简单的战斗场景，包含玩家队伍和敌人队伍，演示基本的回合制战斗流程。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">战斗系统</span>
+                        <span class="case-tag">回合制</span>
+                        <span class="case-tag">基础</span>
+                    </div>
+                </div>
+                
+                <div class="case-card">
+                    <h4>技能连携系统</h4>
+                    <p>实现技能之间的连携效果，例如火系技能使敌人进入"灼烧"状态，然后风系技能对灼烧目标造成额外伤害。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">技能系统</span>
+                        <span class="case-tag">状态效果</span>
+                        <span class="case-tag">高级</span>
+                    </div>
+                </div>
+                
+                <div class="case-card">
+                    <h4>装备与属性成长</h4>
+                    <p>展示装备系统如何影响角色属性，以及角色升级时属性的成长计算。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">装备系统</span>
+                        <span class="case-tag">角色成长</span>
+                        <span class="case-tag">中级</span>
+                    </div>
+                </div>
+                
+                <div class="case-card">
+                    <h4>AI行为模式</h4>
+                    <p>实现不同类型的敌人AI，包括攻击型、防御型、治疗型和混合型行为模式。</p>
+                    <div class="case-tags">
+                        <span class="case-tag">AI系统</span>
+                        <span class="case-tag">敌人行为</span>
+                        <span class="case-tag">中级</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 相关资源 -->
+        <section class="page-section">
+            <h2 class="section-title">相关资源与链接</h2>
+            
+            <p>以下是与RPG战斗系统相关的资源和文档链接：</p>
+            
+            <div class="resource-links">
+                <a href="https://github.com/yourusername/rpg-battle-system" class="resource-link" target="_blank">
+                    <i class="fab fa-github"></i> 查看完整源代码
+                </a>
+                
+                <a href="../game-scripts/inventory-system.html" class="resource-link">
+                    <i class="fas fa-box"></i> 背包与物品系统
+                </a>
+                
+                <a href="../game-scripts/dialogue-system.html" class="resource-link">
+                    <i class="fas fa-comments"></i> 对话系统
+                </a>
+                
+                <a href="../game-scripts/ai-behavior.html" class="resource-link">
+                    <i class="fas fa-brain"></i> AI行为系统
+                </a>
+                
+                <a href="https://gameprogrammingpatterns.com/" class="resource-link" target="_blank">
+                    <i class="fas fa-book"></i> 游戏编程模式
+                </a>
+            </div>
+        </section>
+
+        <!-- 页面导航 -->
+        <div class="page-navigation">
+            <a href="../index.html" class="nav-button">
+                <i class="fas fa-home"></i> 返回主页面
+            </a>
+            
+            <a href="physics-simulation.html" class="nav-button">
+                下一个: 物理引擎模拟 <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // 初始化代码高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            
+            // 为代码块添加行号
+            document.querySelectorAll('pre code').forEach((block) => {
+                const lines = block.innerHTML.split('\n');
+                const lineNumbers = lines.map((line, index) => {
+                    return `<span class="line-number">${index + 1}</span>${line}`;
+                }).join('\n');
+                block.innerHTML = lineNumbers;
+            });
+        });
+        
+        // 复制代码功能
+        function copyCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // 显示复制成功提示
+                const button = event.target.closest('.copy-button');
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                button.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                button.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                alert('复制失败，请手动选择文本复制');
+            });
+        }
+        
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
