@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BDCG模拟器 - 游戏脚本与美术资源集成平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3a0ca3;
+            --secondary-color: #4361ee;
+            --accent-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --card-bg: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        .logo-text h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .logo-text p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title h2 {
+            font-size: 2.2rem;
+            color: var(--primary-color);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        .section-title h2:after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 4px;
+            background: var(--accent-color);
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+
+        .intro-text {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            font-size: 1.1rem;
+            color: var(--gray-color);
+            line-height: 1.8;
+        }
+
+        /* 卡片网格布局 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-image {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .card:hover .card-image img {
+            transform: scale(1.05);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+        }
+
+        .card-description {
+            color: var(--gray-color);
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            align-self: flex-start;
+            margin-top: auto;
+        }
+
+        .card-link:hover {
+            color: var(--accent-color);
+            gap: 0.8rem;
+        }
+
+        /* 外部链接部分 */
+        .external-links {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            padding: 1.2rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--dark-color);
+        }
+
+        .link-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .link-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+            margin-right: 1rem;
+            width: 50px;
+            text-align: center;
+        }
+
+        .link-text h4 {
+            margin-bottom: 0.3rem;
+            color: var(--primary-color);
+        }
+
+        .link-text p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+
+        .file-structure {
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .file-structure h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+        }
+
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 1.5rem;
+        }
+
+        .file-tree li {
+            position: relative;
+        }
+
+        .file-tree li:before {
+            content: "📁";
+            position: absolute;
+            left: -1.2rem;
+        }
+
+        .file-tree .file:before {
+            content: "📄";
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title h2 {
+                font-size: 1.8rem;
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>BDCG模拟器</h1>
+                        <p>游戏脚本与美术资源集成平台</p>
+                    </div>
+                </div>
+                <nav class="nav-links">
+                    <a href="#main-content"><i class="fas fa-home"></i> 主页</a>
+                    <a href="#game-scripts"><i class="fas fa-code"></i> 游戏脚本</a>
+                    <a href="#art-resources"><i class="fas fa-palette"></i> 美术资源</a>
+                    <a href="#external-links"><i class="fas fa-external-link-alt"></i> 外部链接</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <section id="main-content">
+            <div class="section-title">
+                <h2>BDCG模拟器项目</h2>
+            </div>
+            <div class="intro-text">
+                <p>本平台集成了多个游戏脚本案例、Live2D动态编辑文件以及美术资源库。每个卡片代表一个独立项目或资源集合，点击卡片可查看详细分析、案例展示和文件结构。我们设计了清晰的文件管理系统，避免项目混淆，方便您快速定位所需内容。</p>
+            </div>
+
+            <div class="section-title" id="game-scripts">
+                <h2>游戏脚本与代码案例</h2>
+            </div>
+            
+            <div class="cards-grid">
+                <!-- 游戏脚本卡片 -->
+                <div class="card" onclick="window.location.href='game-scripts/rpg-system.html'">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="RPG游戏系统">
+                        <div class="card-badge">游戏脚本</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">RPG战斗系统</h3>
+                        <p class="card-description">完整的角色扮演游戏战斗系统，包含技能树、回合制战斗、角色属性成长和装备系统。代码采用模块化设计，易于扩展和修改。</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-code"></i> JavaScript</span>
+                            <span><i class="fas fa-folder"></i> 12个文件</span>
+                            <span><i class="fas fa-calendar-alt"></i> 2023-08-15</span>
+                        </div>
+                        <a href="game-scripts/rpg-system.html" class="card-link">查看详细分析 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- Live2D动态编辑文件卡片 -->
+                <div class="card" onclick="window.location.href='live2d-editor/character-model.html'">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1171&q=80" alt="Live2D角色模型">
+                        <div class="card-badge">Live2D</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Live2D角色编辑器</h3>
+                        <p class="card-description">动态2D角色模型编辑器，支持表情变化、动作编辑和物理模拟。包含多个预设角色和自定义参数调整界面。</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-code"></i> JSON + JavaScript</span>
+                            <span><i class="fas fa-folder"></i> 8个文件</span>
+                            <span><i class="fas fa-calendar-alt"></i> 2023-09-22</span>
+                        </div>
+                        <a href="live2d-editor/character-model.html" class="card-link">查看模型案例 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- 物理引擎模拟卡片 -->
+                <div class="card" onclick="window.location.href='game-scripts/physics-simulation.html'">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="物理引擎模拟">
+                        <div class="card-badge">物理引擎</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">2D物理引擎模拟</h3>
+                        <p class="card-description">基于Box2D的2D物理引擎实现，包含碰撞检测、刚体动力学和关节系统。适用于平台游戏和物理谜题。</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-code"></i> TypeScript</span>
+                            <span><i class="fas fa-folder"></i> 15个文件</span>
+                            <span><i class="fas fa-calendar-alt"></i> 2023-07-10</span>
+                        </div>
+                        <a href="game-scripts/physics-simulation.html" class="card-link">查看模拟案例 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title" id="art-resources">
+                <h2>美术资源与动态图像</h2>
+            </div>
+            
+            <div class="cards-grid">
+                <!-- 角色立绘资源卡片 -->
+                <div class="card" onclick="window.location.href='art-resources/character-arts.html'">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1542744095-fcf48d80b0fd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1176&q=80" alt="角色立绘">
+                        <div class="card-badge">角色设计</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">角色立绘资源集</h3>
+                        <p class="card-description">包含多种风格的角色立绘，支持不同表情、姿势和服装变体。所有资源采用分层PSD格式，便于修改和动画制作。</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-palette"></i> PSD + PNG</span>
+                            <span><i class="fas fa-folder"></i> 24个文件</span>
+                            <span><i class="fas fa-calendar-alt"></i> 2023-10-05</span>
+                        </div>
+                        <a href="art-resources/character-arts.html" class="card-link">查看资源集 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- UI界面资源卡片 -->
+                <div class="card" onclick="window.location.href='art-resources/ui-elements.html'">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1551650975-87deedd944c3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1174&q=80" alt="UI界面设计">
+                        <div class="card-badge">UI资源</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">游戏UI组件库</h3>
+                        <p class="card-description">完整的游戏用户界面组件，包含按钮、菜单、状态栏、对话框等。支持多种主题和分辨率，提供SVG和PNG格式。</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-palette"></i> SVG + PNG</span>
+                            <span><i class="fas fa-folder"></i> 18个文件</span>
+                            <span><i class="fas fa-calendar-alt"></i> 2023-09-30</span>
+                        </div>
+                        <a href="art-resources/ui-elements.html" class="card-link">查看UI组件 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+
+                <!-- 动态特效资源卡片 -->
+                <div class="card" onclick="window.location.href='art-resources/visual-effects.html'">
+                    <div class="card-image">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1228&q=80" alt="视觉特效">
+                        <div class="card-badge">特效动画</div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">动态视觉特效</h3>
+                        <p class="card-description">粒子特效、技能动画和环境效果资源库。包含JSON配置文件和序列帧动画，可直接导入游戏引擎使用。</p>
+                        <div class="card-meta">
+                            <span><i class="fas fa-palette"></i> JSON + PNG序列</span>
+                            <span><i class="fas fa-folder"></i> 32个文件</span>
+                            <span><i class="fas fa-calendar-alt"></i> 2023-10-12</span>
+                        </div>
+                        <a href="art-resources/visual-effects.html" class="card-link">查看特效案例 <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-structure">
+                <h3>项目文件结构</h3>
+                <div class="file-tree">
+                    <ul>
+                        <li>BDCG模拟器 (根目录)
+                            <ul>
+                                <li class="file">index.html (当前主页)</li>
+                                <li>game-scripts (游戏脚本目录)
+                                    <ul>
+                                        <li class="file">rpg-system.html</li>
+                                        <li class="file">physics-simulation.html</li>
+                                        <li>rpg-system (RPG系统文件)
+                                            <ul>
+                                                <li class="file">combat.js</li>
+                                                <li class="file">character.js</li>
+                                                <li class="file">skills.js</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>live2d-editor (Live2D编辑文件目录)
+                                    <ul>
+                                        <li class="file">character-model.html</li>
+                                        <li>models (模型文件)
+                                            <ul>
+                                                <li class="file">character.moc</li>
+                                                <li class="file">textures.png</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>art-resources (美术资源目录)
+                                    <ul>
+                                        <li class="file">character-arts.html</li>
+                                        <li class="file">ui-elements.html</li>
+                                        <li class="file">visual-effects.html</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="section-title" id="external-links">
+                <h2>相关资源与外部链接</h2>
+            </div>
+            
+            <div class="external-links">
+                <p>以下是一些与BDCG模拟器项目相关的有用资源和外部网站链接，可帮助您更好地了解相关技术和工具。</p>
+                
+                <div class="links-grid">
+                    <a href="https://github.com" class="link-item" target="_blank">
+                        <div class="link-icon">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <div class="link-text">
+                            <h4>GitHub 代码仓库</h4>
+                            <p>查看项目源代码和版本历史记录</p>
+                        </div>
+                    </a>
+                    
+                    <a href="https://www.live2d.com" class="link-item" target="_blank">
+                        <div class="link-icon">
+                            <i class="fas fa-cube"></i>
+                        </div>
+                        <div class="link-text">
+                            <h4>Live2D 官方网站</h4>
+                            <p>获取Live2D模型制作工具和文档</p>
+                        </div>
+                    </a>
+                    
+                    <a href="https://phaser.io" class="link-item" target="_blank">
+                        <div class="link-icon">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <div class="link-text">
+                            <h4>Phaser 游戏框架</h4>
+                            <p>HTML5游戏开发框架文档和示例</p>
+                        </div>
+                    </a>
+                    
+                    <a href="https://itch.io" class="link-item" target="_blank">
+                        <div class="link-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="link-text">
+                            <h4>itch.io 游戏发布平台</h4>
+                            <p>独立游戏发布和展示平台</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container">
+        <p>BDCG模拟器 &copy; 2023 - 游戏脚本与美术资源集成平台</p>
+        <p>本网站为静态网站，所有页面均可直接点击卡片导航到对应子页面</p>
+        <p>文件结构清晰，避免项目混淆，方便维护和扩展</p>
+    </footer>
+
+    <script>
+        // 卡片点击效果增强
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // 如果点击的是链接，不阻止默认行为
+                    if (e.target.tagName === 'A' || e.target.parentElement.tagName === 'A') {
+                        return;
+                    }
+                    
+                    // 否则跳转到卡片链接
+                    const link = this.querySelector('.card-link');
+                    if (link && link.href) {
+                        window.location.href = link.href;
+                    }
+                });
+                
+                // 添加键盘导航支持
+                card.setAttribute('tabindex', '0');
+                card.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const link = this.querySelector('.card-link');
+                        if (link && link.href) {
+                            window.location.href = link.href;
+                        }
+                    }
+                });
+            });
+            
+            // 平滑滚动到锚点
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    if (this.getAttribute('href') === '#') return;
+                    
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    
+                    if (targetElement) {
+                        e.preventDefault();
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
