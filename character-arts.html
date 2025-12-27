@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>角色立绘资源 - BDCG模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --primary-color: #3a0ca3;
+            --secondary-color: #4361ee;
+            --accent-color: #f72585;
+            --art-color: #ff6b6b;
+            --psd-color: #38b000;
+            --layer-color: #7209b7;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --code-bg: #282c34;
+            --card-bg: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部导航 */
+        .subpage-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .subpage-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .subpage-title h1 {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .subpage-title p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-actions a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .header-actions a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主要内容 */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .page-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+        }
+
+        .section-subtitle {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* 项目概览 */
+        .project-overview {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .project-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .project-description p {
+            margin-bottom: 1.2rem;
+            color: var(--dark-color);
+        }
+
+        .project-meta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .meta-value {
+            color: var(--gray-color);
+        }
+
+        /* 角色展示网格 */
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .character-card {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .character-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .character-image {
+            height: 250px;
+            background-color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--art-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .character-info {
+            padding: 1.5rem;
+        }
+
+        .character-info h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        .character-info p {
+            color: var(--gray-color);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .character-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .character-tag {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--secondary-color);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .character-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding-top: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        /* 图层展示 */
+        .layer-demo {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .layer-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .layer-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .layer-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .layer-toggle.active {
+            background-color: var(--layer-color);
+        }
+
+        .layer-canvas {
+            flex-grow: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .layer-element {
+            position: absolute;
+            transition: var(--transition);
+            text-align: center;
+            color: white;
+        }
+
+        /* 文件格式展示 */
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .format-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .format-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .format-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .format-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+        }
+
+        .format-card p {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .format-features {
+            list-style-type: none;
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .format-features li {
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .format-features li i {
+            color: var(--accent-color);
+            font-size: 0.8rem;
+        }
+
+        /* 代码演示 */
+        .code-demo {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem 1.2rem;
+            color: #abb2bf;
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #abb2bf;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .hljs {
+            background: transparent;
+        }
+
+        /* 文件结构 */
+        .file-structure {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 1.5rem;
+        }
+
+        .file-tree li {
+            position: relative;
+            padding: 0.2rem 0;
+        }
+
+        .file-tree li:before {
+            content: "📁";
+            position: absolute;
+            left: -1.2rem;
+        }
+
+        .file-tree .file:before {
+            content: "📄";
+        }
+
+        .file-tree .psd-file:before {
+            content: "🎨";
+        }
+
+        .file-tree .png-file:before {
+            content: "🖼️";
+        }
+
+        .file-tree .json-file:before {
+            content: "📋";
+        }
+
+        /* 相关资源 */
+        .resource-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .resource-link:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* 页面导航 */
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .nav-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                justify-content: center;
+            }
+            
+            .subpage-title h1 {
+                font-size: 1.7rem;
+            }
+            
+            .character-grid, .format-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .layer-controls {
+                flex-direction: column;
+            }
+            
+            .page-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="subpage-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 返回主页
+                </a>
+                
+                <div class="subpage-title">
+                    <h1>角色立绘资源</h1>
+                    <p>高质量角色立绘与分层资源库</p>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="#character-gallery"><i class="fas fa-images"></i> 角色库</a>
+                    <a href="#layer-demo"><i class="fas fa-layer-group"></i> 图层演示</a>
+                    <a href="#file-formats"><i class="fas fa-file"></i> 文件格式</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <!-- 项目概览 -->
+        <section class="page-section">
+            <h2 class="section-title">项目概览</h2>
+            
+            <div class="project-overview">
+                <div class="project-description">
+                    <p>本资源库包含大量高质量的角色立绘资源，专为游戏开发、动画制作和视觉小说项目设计。所有资源都采用分层PSD格式，便于编辑、动画制作和个性化定制。</p>
+                    
+                    <p>资源库涵盖多种艺术风格和角色类型，包括现代、幻想、科幻和日式动漫风格。每个角色都包含多个表情、姿势和服装变体，支持动态组合和实时预览。</p>
+                    
+                    <p>所有资源都经过专业优化，确保在不同分辨率下的显示效果。我们提供完整的文件结构、图层命名规范和编辑指南，帮助开发者高效使用这些资源。</p>
+                </div>
+                
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">资源类型:</span>
+                        <span class="meta-value">角色立绘</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">文件数量:</span>
+                        <span class="meta-value">24个角色</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">最后更新:</span>
+                        <span class="meta-value">2023-10-05</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">主要格式:</span>
+                        <span class="meta-value">PSD + PNG</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">分层结构:</span>
+                        <span class="meta-value">标准化的</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">分辨率:</span>
+                        <span class="meta-value">最高4K</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 角色展示 -->
+        <section class="page-section" id="character-gallery">
+            <h2 class="section-title">角色资源库</h2>
+            
+            <div class="character-grid">
+                <!-- 角色1 -->
+                <div class="character-card">
+                    <div class="character-image" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">
+                        <div class="character-badge">主角</div>
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <div class="character-info">
+                        <h4>艾莉娅 - 魔法学院学生</h4>
+                        <p>魔法学院的高材生，擅长元素魔法。包含8种表情、3套服装和多种魔法特效图层。</p>
+                        <div class="character-tags">
+                            <span class="character-tag">魔法师</span>
+                            <span class="character-tag">学生</span>
+                            <span class="character-tag">长发</span>
+                        </div>
+                        <div class="character-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">8</div>
+                                <div class="stat-label">表情</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">3</div>
+                                <div class="stat-label">服装</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">42</div>
+                                <div class="stat-label">图层</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 角色2 -->
+                <div class="character-card">
+                    <div class="character-image" style="background: linear-gradient(135deg, #f72585, #7209b7);">
+                        <div class="character-badge">反派</div>
+                        <i class="fas fa-male"></i>
+                    </div>
+                    <div class="character-info">
+                        <h4>凯恩 - 黑暗骑士</h4>
+                        <p>被黑暗力量腐蚀的骑士，追求绝对的力量。包含5种表情、2套盔甲和黑暗特效图层。</p>
+                        <div class="character-tags">
+                            <span class="character-tag">骑士</span>
+                            <span class="character-tag">黑暗</span>
+                            <span class="character-tag">盔甲</span>
+                        </div>
+                        <div class="character-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">5</div>
+                                <div class="stat-label">表情</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">2</div>
+                                <div class="stat-label">盔甲</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">38</div>
+                                <div class="stat-label">图层</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 角色3 -->
+                <div class="character-card">
+                    <div class="character-image" style="background: linear-gradient(135deg, #4cc9f0, #4361ee);">
+                        <div class="character-badge">辅助</div>
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="character-info">
+                        <h4>零式 - 辅助机器人</h4>
+                        <p>高科技辅助机器人，具备多种工具和扫描功能。包含动态灯光、机械部件和HUD显示图层。</p>
+                        <div class="character-tags">
+                            <span class="character-tag">机器人</span>
+                            <span class="character-tag">科幻</span>
+                            <span class="character-tag">发光</span>
+                        </div>
+                        <div class="character-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">4</div>
+                                <div class="stat-label">模式</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">6</div>
+                                <div class="stat-label">工具</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">51</div>
+                                <div class="stat-label">图层</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 图层演示 -->
+        <section class="page-section" id="layer-demo">
+            <h2 class="section-title">分层结构演示</h2>
+            
+            <div class="layer-demo">
+                <div class="layer-controls">
+                    <div class="layer-toggle active" data-layer="base">
+                        <i class="fas fa-check-square"></i>
+                        <span>基础线稿</span>
+                    </div>
+                    <div class="layer-toggle active" data-layer="skin">
+                        <i class="fas fa-check-square"></i>
+                        <span>皮肤上色</span>
+                    </div>
+                    <div class="layer-toggle active" data-layer="hair">
+                        <i class="fas fa-check-square"></i>
+                        <span>头发</span>
+                    </div>
+                    <div class="layer-toggle active" data-layer="eyes">
+                        <i class="fas fa-check-square"></i>
+                        <span>眼睛</span>
+                    </div>
+                    <div class="layer-toggle active" data-layer="clothes">
+                        <i class="fas fa-check-square"></i>
+                        <span>服装</span>
+                    </div>
+                    <div class="layer-toggle" data-layer="accessories">
+                        <i class="far fa-square"></i>
+                        <span>饰品</span>
+                    </div>
+                    <div class="layer-toggle" data-layer="effects">
+                        <i class="far fa-square"></i>
+                        <span>特效</span>
+                    </div>
+                    <div class="layer-toggle active" data-layer="shading">
+                        <i class="fas fa-check-square"></i>
+                        <span>阴影</span>
+                    </div>
+                </div>
+                
+                <div class="layer-canvas" id="layerCanvas">
+                    <!-- 图层元素将通过JavaScript动态添加 -->
+                    <div style="color: rgba(255,255,255,0.5); text-align: center; padding: 2rem;">
+                        <i class="fas fa-layer-group" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h3>分层结构演示</h3>
+                        <p>使用上方的开关控制不同图层的显示/隐藏</p>
+                    </div>
+                </div>
+            </div>
+            
+            <p>PSD分层结构允许开发者独立控制角色的各个部分，便于动画制作、表情切换和服装更换。所有图层都采用标准化的命名规范，确保在不同项目中的兼容性。</p>
+        </section>
+
+        <!-- 文件格式 -->
+        <section class="page-section" id="file-formats">
+            <h2 class="section-title">支持的文件格式</h2>
+            
+            <div class="format-grid">
+                <div class="format-card">
+                    <div class="format-icon">
+                        <i class="fas fa-file-image"></i>
+                    </div>
+                    <h4>PSD格式</h4>
+                    <p>Adobe Photoshop原生格式，包含完整的分层结构。</p>
+                    <ul class="format-features">
+                        <li><i class="fas fa-check"></i> 完整图层结构</li>
+                        <li><i class="fas fa-check"></i> 可编辑文本</li>
+                        <li><i class="fas fa-check"></i> 调整图层</li>
+                        <li><i class="fas fa-check"></i> 智能对象</li>
+                    </ul>
+                </div>
+                
+                <div class="format-card">
+                    <div class="format-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h4>PNG序列</h4>
+                    <p>透明背景的PNG图像，支持多分辨率输出。</p>
+                    <ul class="format-features">
+                        <li><i class="fas fa-check"></i> 透明背景</li>
+                        <li><i class="fas fa-check"></i> 无损压缩</li>
+                        <li><i class="fas fa-check"></i> 多分辨率</li>
+                        <li><i class="fas fa-check"></i> 通用兼容</li>
+                    </ul>
+                </div>
+                
+                <div class="format-card">
+                    <div class="format-icon">
+                        <i class="fas fa-file-code"></i>
+                    </div>
+                    <h4>JSON配置</h4>
+                    <p>图层信息和动画参数的配置文件。</p>
+                    <ul class="format-features">
+                        <li><i class="fas fa-check"></i> 图层映射</li>
+                        <li><i class="fas fa-check"></i> 动画参数</li>
+                        <li><i class="fas fa-check"></i> 颜色配置</li>
+                        <li><i class="fas fa-check"></i> 元数据</li>
+                    </ul>
+                </div>
+                
+                <div class="format-card">
+                    <div class="format-icon">
+                        <i class="fas fa-file-archive"></i>
+                    </div>
+                    <h4>精灵图集</h4>
+                    <p>游戏引擎优化的精灵图集和配置文件。</p>
+                    <ul class="format-features">
+                        <li><i class="fas fa-check"></i> 纹理打包</li>
+                        <li><i class="fas fa-check"></i> UV坐标</li>
+                        <li><i class="fas fa-check"></i> 动画剪辑</li>
+                        <li><i class="fas fa-check"></i> 性能优化</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 代码演示 -->
+        <section class="page-section" id="code-demo">
+            <h2 class="section-title">配置文件示例</h2>
+            
+            <h3 class="section-subtitle">角色配置文件 (character_config.json)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>art-resources/characters/aelia/character_config.json</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code1')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="json" id="code1">{
+  "character": {
+    "name": "艾莉娅",
+    "id": "aelia",
+    "version": "1.2.0",
+    "author": "BDCG艺术团队",
+    "description": "魔法学院学生，擅长元素魔法",
+    "created": "2023-08-10",
+    "updated": "2023-10-05"
+  },
+  
+  "file_structure": {
+    "psd": "aelia.psd",
+    "textures": {
+      "base": "textures/base.png",
+      "expressions": "textures/expressions/",
+      "outfits": "textures/outfits/",
+      "effects": "textures/effects/"
+    },
+    "config": "config/"
+  },
+  
+  "layers": {
+    "groups": {
+      "base": ["线稿", "底色"],
+      "skin": ["皮肤_基础", "皮肤_阴影", "皮肤_高光", "红晕"],
+      "hair": ["头发_底色", "头发_阴影", "头发_高光", "发饰"],
+      "eyes": ["眼睛_白底", "眼睛_虹膜", "眼睛_瞳孔", "眼睛_高光"],
+      "clothes": ["服装_底色", "服装_阴影", "服装_高光", "服装_图案"],
+      "accessories": ["饰品_项链", "饰品_耳环", "饰品_手镯"],
+      "effects": ["魔法_光环", "魔法_粒子", "光效"]
+    },
+    
+    "visibility": {
+      "default": ["base", "skin", "hair", "eyes", "clothes", "shading"],
+      "no_accessories": ["base", "skin", "hair", "eyes", "clothes", "shading"],
+      "magic_effect": ["base", "skin", "hair", "eyes", "clothes", "shading", "effects"]
+    }
+  },
+  
+  "expressions": {
+    "neutral": {
+      "eyes": "eyes_neutral",
+      "mouth": "mouth_neutral",
+      "eyebrows": "eyebrows_neutral"
+    },
+    "happy": {
+      "eyes": "eyes_happy",
+      "mouth": "mouth_smile",
+      "eyebrows": "eyebrows_relaxed",
+      "cheeks": "blush_light"
+    },
+    "sad": {
+      "eyes": "eyes_sad",
+      "mouth": "mouth_frown",
+      "eyebrows": "eyebrows_sad",
+      "effects": "tear"
+    },
+    "angry": {
+      "eyes": "eyes_angry",
+      "mouth": "mouth_angry",
+      "eyebrows": "eyebrows_angry",
+      "effects": "vein"
+    },
+    "surprised": {
+      "eyes": "eyes_surprised",
+      "mouth": "mouth_surprised",
+      "eyebrows": "eyebrows_surprised"
+    }
+  },
+  
+  "outfits": {
+    "default": {
+      "name": "学院制服",
+      "layers": ["clothes_school", "shoes_school", "ribbon_red"]
+    },
+    "casual": {
+      "name": "日常服装",
+      "layers": ["clothes_casual", "shoes_sneakers", "bag"]
+    },
+    "magic": {
+      "name": "魔法师长袍",
+      "layers": ["robe_magic", "hat_wizard", "staff"],
+      "effects": ["magic_glow"]
+    }
+  },
+  
+  "animations": {
+    "blink": {
+      "frames": 3,
+      "duration": 0.2,
+      "layers": ["eyes_closed", "eyes_half", "eyes_open"]
+    },
+    "breathing": {
+      "type": "loop",
+      "duration": 3.0,
+      "amplitude": 2,
+      "layers": ["body_vertical"]
+    },
+    "talk": {
+      "type": "random",
+      "mouths": ["mouth_a", "mouth_b", "mouth_c", "mouth_d"]
+    }
+  },
+  
+  "color_palette": {
+    "skin": {
+      "base": "#ffd6c2",
+      "shadow": "#e6b8a5",
+      "highlight": "#ffebdb"
+    },
+    "hair": {
+      "base": "#8b4513",
+      "shadow": "#5d2e0f",
+      "highlight": "#a85e1a"
+    },
+    "eyes": {
+      "iris": "#4a6fa5",
+      "pupil": "#1a1a2e"
+    }
+  },
+  
+  "export_settings": {
+    "resolutions": [512, 1024, 2048],
+    "formats": ["png", "jpg"],
+    "compression": {
+      "png": 9,
+      "jpg": 85
+    },
+    "trim": true,
+    "bleed": 2
+  }
+}</code></pre>
+            </div>
+            
+            <h3 class="section-subtitle">图层管理脚本 (LayerManager.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>art-resources/utils/LayerManager.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code2')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code2">/**
+ * 角色立绘资源 - 图层管理器
+ * 负责管理PSD分层结构、图层可见性和组合渲染
+ */
+class LayerManager {
+    constructor(config) {
+        this.config = config;
+        this.layers = {};
+        this.visibility = {};
+        this.currentState = {};
+        
+        // 加载图层配置
+        this.loadConfig();
+        
+        // 初始化状态
+        this.initializeState();
+    }
+    
+    /**
+     * 加载配置文件
+     */
+    loadConfig() {
+        // 解析图层分组
+        for (const [groupName, layerNames] of Object.entries(this.config.layers.groups)) {
+            this.layers[groupName] = {
+                names: layerNames,
+                visible: true,
+                opacity: 1.0
+            };
+        }
+        
+        // 初始化可见性配置
+        for (const [stateName, groups] of Object.entries(this.config.layers.visibility)) {
+            this.visibility[stateName] = new Set(groups);
+        }
+        
+        console.log(`Layer manager initialized with ${Object.keys(this.layers).length} layer groups`);
+    }
+    
+    /**
+     * 初始化状态
+     */
+    initializeState() {
+        // 设置默认状态
+        this.setState('default');
+        
+        // 初始化表情
+        this.currentState.expression = 'neutral';
+        
+        // 初始化服装
+        this.currentState.outfit = 'default';
+        
+        // 初始化其他状态
+        this.currentState.blink = false;
+        this.currentState.talking = false;
+        this.currentState.effects = [];
+    }
+    
+    /**
+     * 设置图层状态
+     */
+    setState(stateName) {
+        if (!this.visibility[stateName]) {
+            console.warn(`State ${stateName} not found`);
+            return false;
+        }
+        
+        // 隐藏所有图层
+        for (const groupName in this.layers) {
+            this.layers[groupName].visible = false;
+        }
+        
+        // 显示指定状态的图层
+        for (const groupName of this.visibility[stateName]) {
+            if (this.layers[groupName]) {
+                this.layers[groupName].visible = true;
+            }
+        }
+        
+        this.currentState.visibility = stateName;
+        console.log(`Layer state set to: ${stateName}`);
+        
+        return true;
+    }
+    
+    /**
+     * 设置表情
+     */
+    setExpression(expressionName) {
+        if (!this.config.expressions[expressionName]) {
+            console.warn(`Expression ${expressionName} not found`);
+            return false;
+        }
+        
+        const expression = this.config.expressions[expressionName];
+        this.currentState.expression = expressionName;
+        
+        // 应用表情图层
+        this.applyExpressionLayers(expression);
+        
+        console.log(`Expression set to: ${expressionName}`);
+        return true;
+    }
+    
+    /**
+     * 应用表情图层
+     */
+    applyExpressionLayers(expression) {
+        // 这里简化处理，实际需要更新具体的图层
+        // 例如：切换眼睛、嘴巴、眉毛的纹理
+        
+        // 记录表情配置
+        this.currentState.expressionConfig = expression;
+        
+        // 触发图层更新事件
+        this.triggerUpdate();
+    }
+    
+    /**
+     * 设置服装
+     */
+    setOutfit(outfitName) {
+        if (!this.config.outfits[outfitName]) {
+            console.warn(`Outfit ${outfitName} not found`);
+            return false;
+        }
+        
+        const outfit = this.config.outfits[outfitName];
+        this.currentState.outfit = outfitName;
+        
+        // 应用服装图层
+        this.applyOutfitLayers(outfit);
+        
+        console.log(`Outfit set to: ${outfitName}`);
+        return true;
+    }
+    
+    /**
+     * 应用服装图层
+     */
+    applyOutfitLayers(outfit) {
+        // 隐藏所有服装相关图层
+        this.setLayerGroupVisible('clothes', false);
+        this.setLayerGroupVisible('accessories', false);
+        
+        // 显示指定服装的图层
+        for (const layerName of outfit.layers) {
+            this.setLayerVisible(layerName, true);
+        }
+        
+        // 应用特效（如果有）
+        if (outfit.effects) {
+            for (const effect of outfit.effects) {
+                this.addEffect(effect);
+            }
+        }
+        
+        // 触发图层更新事件
+        this.triggerUpdate();
+    }
+    
+    /**
+     * 设置图层组可见性
+     */
+    setLayerGroupVisible(groupName, visible) {
+        if (this.layers[groupName]) {
+            this.layers[groupName].visible = visible;
+            this.triggerUpdate();
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 设置单个图层可见性
+     */
+    setLayerVisible(layerName, visible) {
+        // 在所有图层组中查找指定图层
+        for (const [groupName, group] of Object.entries(this.layers)) {
+            if (group.names.includes(layerName)) {
+                // 这里简化处理，实际需要更精细的控制
+                console.log(`Layer ${layerName} visibility set to: ${visible}`);
+                this.triggerUpdate();
+                return true;
+            }
+        }
+        
+        console.warn(`Layer ${layerName} not found`);
+        return false;
+    }
+    
+    /**
+     * 设置图层不透明度
+     */
+    setLayerOpacity(layerName, opacity) {
+        // 在所有图层组中查找指定图层
+        for (const [groupName, group] of Object.entries(this.layers)) {
+            if (group.names.includes(layerName)) {
+                // 这里简化处理，实际需要更精细的控制
+                console.log(`Layer ${layerName} opacity set to: ${opacity}`);
+                this.triggerUpdate();
+                return true;
+            }
+        }
+        
+        console.warn(`Layer ${layerName} not found`);
+        return false;
+    }
+    
+    /**
+     * 添加特效
+     */
+    addEffect(effectName) {
+        if (!this.currentState.effects.includes(effectName)) {
+            this.currentState.effects.push(effectName);
+            
+            // 显示特效图层
+            this.setLayerVisible(effectName, true);
+            
+            console.log(`Effect added: ${effectName}`);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 移除特效
+     */
+    removeEffect(effectName) {
+        const index = this.currentState.effects.indexOf(effectName);
+        if (index > -1) {
+            this.currentState.effects.splice(index, 1);
+            
+            // 隐藏特效图层
+            this.setLayerVisible(effectName, false);
+            
+            console.log(`Effect removed: ${effectName}`);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * 开始眨眼动画
+     */
+    startBlink() {
+        this.currentState.blink = true;
+        
+        // 执行眨眼动画序列
+        this.executeBlinkAnimation();
+        
+        console.log('Blink animation started');
+    }
+    
+    /**
+     * 执行眨眼动画
+     */
+    executeBlinkAnimation() {
+        if (!this.currentState.blink) return;
+        
+        // 眨眼动画序列
+        const blinkSequence = [
+            { frame: 0, action: 'close' },
+            { frame: 1, action: 'half' },
+            { frame: 2, action: 'open' }
+        ];
+        
+        let frameIndex = 0;
+        const blinkInterval = setInterval(() => {
+            if (frameIndex >= blinkSequence.length) {
+                clearInterval(blinkInterval);
+                this.currentState.blink = false;
+                return;
+            }
+            
+            const frame = blinkSequence[frameIndex];
+            this.applyBlinkFrame(frame.action);
+            frameIndex++;
+        }, 66); // 每帧66ms，总共约200ms
+        
+        console.log('Blink animation executing...');
+    }
+    
+    /**
+     * 应用眨眼帧
+     */
+    applyBlinkFrame(action) {
+        // 根据动作设置眼睛图层
+        switch (action) {
+            case 'close':
+                this.setLayerVisible('eyes_open', false);
+                this.setLayerVisible('eyes_closed', true);
+                break;
+            case 'half':
+                this.setLayerVisible('eyes_closed', false);
+                this.setLayerVisible('eyes_half', true);
+                break;
+            case 'open':
+                this.setLayerVisible('eyes_half', false);
+                this.setLayerVisible('eyes_open', true);
+                break;
+        }
+    }
+    
+    /**
+     * 开始说话动画
+     */
+    startTalking() {
+        this.currentState.talking = true;
+        this.executeTalkAnimation();
+    }
+    
+    /**
+     * 停止说话动画
+     */
+    stopTalking() {
+        this.currentState.talking = false;
+        // 恢复默认嘴巴
+        this.setLayerVisible('mouth_neutral', true);
+    }
+    
+    /**
+     * 执行说话动画
+     */
+    executeTalkAnimation() {
+        if (!this.currentState.talking) return;
+        
+        const mouthShapes = ['mouth_a', 'mouth_b', 'mouth_c', 'mouth_d'];
+        let shapeIndex = 0;
+        
+        const talkInterval = setInterval(() => {
+            if (!this.currentState.talking) {
+                clearInterval(talkInterval);
+                return;
+            }
+            
+            // 切换嘴巴形状
+            const currentShape = mouthShapes[shapeIndex];
+            const nextShape = mouthShapes[(shapeIndex + 1) % mouthShapes.length];
+            
+            this.setLayerVisible(currentShape, false);
+            this.setLayerVisible(nextShape, true);
+            
+            shapeIndex = (shapeIndex + 1) % mouthShapes.length;
+        }, 150); // 每150ms切换一次
+        
+        console.log('Talk animation started');
+    }
+    
+    /**
+     * 获取当前状态
+     */
+    getCurrentState() {
+        return {
+            ...this.currentState,
+            layers: this.getVisibleLayers()
+        };
+    }
+    
+    /**
+     * 获取可见图层列表
+     */
+    getVisibleLayers() {
+        const visibleLayers = [];
+        
+        for (const [groupName, group] of Object.entries(this.layers)) {
+            if (group.visible) {
+                visibleLayers.push(...group.names);
+            }
+        }
+        
+        return visibleLayers;
+    }
+    
+    /**
+     * 触发更新事件
+     */
+    triggerUpdate() {
+        // 这里可以触发自定义事件或回调
+        if (this.onUpdate) {
+            this.onUpdate(this.getCurrentState());
+        }
+    }
+    
+    /**
+     * 导出当前状态配置
+     */
+    exportState() {
+        return {
+            config: this.config,
+            currentState: this.currentState,
+            visibleLayers: this.getVisibleLayers(),
+            timestamp: new Date().toISOString()
+        };
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 文件结构 -->
+        <section class="page-section" id="file-structure">
+            <h2 class="section-title">项目文件结构</h2>
+            
+            <div class="file-structure">
+                <div class="file-tree">
+                    <ul>
+                        <li>art-resources/character-arts/
+                            <ul>
+                                <li>characters/ (角色资源)
+                                    <ul>
+                                        <li>aelia/ (艾莉娅)
+                                            <ul>
+                                                <li class="psd-file">aelia.psd</li>
+                                                <li class="json-file">character_config.json</li>
+                                                <li class="json-file">animation_config.json</li>
+                                                <li>textures/ (纹理文件)
+                                                    <ul>
+                                                        <li class="png-file">base.png</li>
+                                                        <li>expressions/ (表情纹理)
+                                                            <ul>
+                                                                <li class="png-file">neutral.png</li>
+                                                                <li class="png-file">happy.png</li>
+                                                                <li class="png-file">sad.png</li>
+                                                            </ul>
+                                                        </li>
+                                                        <li>outfits/ (服装纹理)
+                                                            <ul>
+                                                                <li class="png-file">school.png</li>
+                                                                <li class="png-file">casual.png</li>
+                                                                <li class="png-file">magic_robe.png</li>
+                                                            </ul>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>kain/ (凯恩)
+                                            <ul>
+                                                <li class="psd-file">kain.psd</li>
+                                                <li class="json-file">character_config.json</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>utils/ (工具脚本)
+                                    <ul>
+                                        <li class="js-file">LayerManager.js</li>
+                                        <li class="js-file">Exporter.js</li>
+                                        <li class="js-file">BatchProcessor.js</li>
+                                    </ul>
+                                </li>
+                                <li>templates/ (模板文件)
+                                    <ul>
+                                        <li class="psd-file">character_template.psd</li>
+                                        <li class="json-file">config_template.json</li>
+                                        <li class="file">naming_convention.md</li>
+                                    </ul>
+                                </li>
+                                <li class="file">README.md (说明文档)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p>角色立绘资源采用标准化的文件结构，每个角色都有独立的文件夹，包含PSD源文件、配置文件和纹理文件。工具脚本提供批量处理和导出功能，模板文件帮助创建新的角色资源。</p>
+        </section>
+
+        <!-- 相关资源 -->
+        <section class="page-section">
+            <h2 class="section-title">相关资源与链接</h2>
+            
+            <p>以下是与角色立绘资源相关的资源和文档链接：</p>
+            
+            <div class="resource-links">
+                <a href="https://github.com/yourusername/character-arts" class="resource-link" target="_blank">
+                    <i class="fab fa-github"></i> 查看完整资源库
+                </a>
+                
+                <a href="../live2d-editor/character-model.html" class="resource-link">
+                    <i class="fas fa-cube"></i> Live2D角色模型
+                </a>
+                
+                <a href="../art-resources/ui-elements.html" class="resource-link">
+                    <i class="fas fa-th"></i> UI界面资源
+                </a>
+                
+                <a href="../art-resources/visual-effects.html" class="resource-link">
+                    <i class="fas fa-fire"></i> 视觉特效资源
+                </a>
+                
+                <a href="https://www.adobe.com/products/photoshop.html" class="resource-link" target="_blank">
+                    <i class="fas fa-paint-brush"></i> Adobe Photoshop
+                </a>
+                
+                <a href="https://www.aseprite.org/" class="resource-link" target="_blank">
+                    <i class="fas fa-palette"></i> Aseprite像素艺术工具
+                </a>
+            </div>
+        </section>
+
+        <!-- 页面导航 -->
+        <div class="page-navigation">
+            <a href="../index.html" class="nav-button">
+                <i class="fas fa-home"></i> 返回主页面
+            </a>
+            
+            <div>
+                <a href="../live2d-editor/character-model.html" class="nav-button">
+                    <i class="fas fa-arrow-left"></i> 上一个: Live2D角色模型
+                </a>
+                <a href="../art-resources/ui-elements.html" class="nav-button">
+                    下一个: UI界面资源 <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // 初始化代码高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            
+            // 初始化图层演示
+            initLayerDemo();
+        });
+        
+        // 复制代码功能
+        function copyCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // 显示复制成功提示
+                const button = event.target.closest('.copy-button');
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                button.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                button.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                alert('复制失败，请手动选择文本复制');
+            });
+        }
+        
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 图层演示功能
+        function initLayerDemo() {
+            const layerToggles = document.querySelectorAll('.layer-toggle');
+            const layerCanvas = document.getElementById('layerCanvas');
+            
+            // 图层元素数据
+            const layerElements = [
+                { id: 'base', name: '基础线稿', color: '#8b4513', icon: 'fas fa-pencil-alt', x: 50, y: 50, size: 80 },
+                { id: 'skin', name: '皮肤上色', color: '#ffd6c2', icon: 'fas fa-user', x: 150, y: 80, size: 100 },
+                { id: 'hair', name: '头发', color: '#8b4513', icon: 'fas fa-cut', x: 100, y: 30, size: 120 },
+                { id: 'eyes', name: '眼睛', color: '#4a6fa5', icon: 'fas fa-eye', x: 120, y: 100, size: 40 },
+                { id: 'clothes', name: '服装', color: '#4361ee', icon: 'fas fa-tshirt', x: 150, y: 150, size: 140 },
+                { id: 'accessories', name: '饰品', color: '#f72585', icon: 'fas fa-gem', x: 80, y: 180, size: 50 },
+                { id: 'effects', name: '特效', color: '#ff6b6b', icon: 'fas fa-magic', x: 200, y: 50, size: 60 },
+                { id: 'shading', name: '阴影', color: 'rgba(0,0,0,0.3)', icon: 'fas fa-adjust', x: 150, y: 100, size: 160 }
+            ];
+            
+            // 创建图层元素
+            function createLayerElements() {
+                layerCanvas.innerHTML = '';
+                
+                layerElements.forEach(layer => {
+                    const element = document.createElement('div');
+                    element.className = 'layer-element';
+                    element.id = `layer-${layer.id}`;
+                    element.dataset.layer = layer.id;
+                    
+                    // 根据激活状态设置样式
+                    const isActive = document.querySelector(`.layer-toggle[data-layer="${layer.id}"]`).classList.contains('active');
+                    
+                    element.style.opacity = isActive ? '1' : '0.2';
+                    element.style.transform = `translate(${layer.x}px, ${layer.y}px)`;
+                    element.style.width = `${layer.size}px`;
+                    element.style.height = `${layer.size}px`;
+                    element.style.backgroundColor = layer.color;
+                    element.style.borderRadius = '10px';
+                    element.style.display = 'flex';
+                    element.style.flexDirection = 'column';
+                    element.style.alignItems = 'center';
+                    element.style.justifyContent = 'center';
+                    element.style.boxShadow = isActive ? '0 5px 15px rgba(0,0,0,0.3)' : 'none';
+                    
+                    element.innerHTML = `
+                        <i class="${layer.icon}" style="font-size: ${layer.size/3}px; margin-bottom: 5px;"></i>
+                        <span style="font-size: ${layer.size/10}px;">${layer.name}</span>
+                    `;
+                    
+                    layerCanvas.appendChild(element);
+                });
+            }
+            
+            // 初始化图层元素
+            createLayerElements();
+            
+            // 图层切换事件
+            layerToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const layerId = this.dataset.layer;
+                    const isActive = this.classList.contains('active');
+                    
+                    // 切换激活状态
+                    if (isActive) {
+                        this.classList.remove('active');
+                        this.querySelector('i').className = 'far fa-square';
+                    } else {
+                        this.classList.add('active');
+                        this.querySelector('i').className = 'fas fa-check-square';
+                    }
+                    
+                    // 更新对应图层元素
+                    const layerElement = document.getElementById(`layer-${layerId}`);
+                    if (layerElement) {
+                        const isNowActive = this.classList.contains('active');
+                        layerElement.style.opacity = isNowActive ? '1' : '0.2';
+                        layerElement.style.boxShadow = isNowActive ? '0 5px 15px rgba(0,0,0,0.3)' : 'none';
+                        
+                        // 如果是特效图层，添加闪烁效果
+                        if (layerId === 'effects' && isNowActive) {
+                            layerElement.style.animation = 'pulse 1s infinite';
+                        } else {
+                            layerElement.style.animation = '';
+                        }
+                    }
+                    
+                    // 更新图层计数显示
+                    updateLayerCount();
+                });
+            });
+            
+            // 更新图层计数
+            function updateLayerCount() {
+                const activeLayers = document.querySelectorAll('.layer-toggle.active').length;
+                const totalLayers = layerToggles.length;
+                
+                // 在画布上显示计数
+                const counter = document.createElement('div');
+                counter.style.position = 'absolute';
+                counter.style.bottom = '10px';
+                counter.style.right = '10px';
+                counter.style.color = 'white';
+                counter.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                counter.style.padding = '5px 10px';
+                counter.style.borderRadius = '5px';
+                counter.style.fontSize = '0.9rem';
+                counter.innerHTML = `图层: ${activeLayers}/${totalLayers}`;
+                
+                // 移除旧的计数器
+                const oldCounter = layerCanvas.querySelector('.layer-counter');
+                if (oldCounter) oldCounter.remove();
+                
+                counter.className = 'layer-counter';
+                layerCanvas.appendChild(counter);
+            }
+            
+            // 初始更新
+            updateLayerCount();
+            
+            // 添加CSS动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0% { opacity: 0.7; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.7; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 添加随机动画效果
+            setInterval(() => {
+                // 随机移动一个图层元素
+                const elements = document.querySelectorAll('.layer-element');
+                if (elements.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * elements.length);
+                    const element = elements[randomIndex];
+                    const layerId = element.dataset.layer;
+                    
+                    // 只移动激活的图层
+                    const toggle = document.querySelector(`.layer-toggle[data-layer="${layerId}"]`);
+                    if (toggle && toggle.classList.contains('active')) {
+                        const currentX = parseInt(element.style.transform.match(/translate\((\d+)px/)[1]);
+                        const currentY = parseInt(element.style.transform.match(/,\s*(\d+)px/)[1]);
+                        
+                        const newX = Math.max(10, Math.min(290, currentX + (Math.random() - 0.5) * 20));
+                        const newY = Math.max(10, Math.min(190, currentY + (Math.random() - 0.5) * 20));
+                        
+                        element.style.transition = 'transform 0.5s ease';
+                        element.style.transform = `translate(${newX}px, ${newY}px)`;
+                    }
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
