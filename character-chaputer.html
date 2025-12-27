@@ -1,0 +1,3082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可编译游戏剧情系统 - BDCG模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --primary-color: #3a0ca3;
+            --secondary-color: #4361ee;
+            --accent-color: #f72585;
+            --dialogue-color: #4cc9f0;
+            --branch-color: #7209b7;
+            --compile-color: #38b000;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --code-bg: #282c34;
+            --card-bg: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部导航 */
+        .subpage-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .subpage-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .subpage-title h1 {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .subpage-title p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-actions a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .header-actions a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主要内容 */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .page-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+        }
+
+        .section-subtitle {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* 项目概览 */
+        .project-overview {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .project-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .project-description p {
+            margin-bottom: 1.2rem;
+            color: var(--dark-color);
+        }
+
+        .project-meta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .meta-value {
+            color: var(--gray-color);
+        }
+
+        /* 系统特性网格 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: var(--transition);
+            border-left: 4px solid var(--dialogue-color);
+        }
+
+        .feature-card.branch {
+            border-left-color: var(--branch-color);
+        }
+
+        .feature-card.compile {
+            border-left-color: var(--compile-color);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--dialogue-color);
+        }
+
+        .feature-card.branch .feature-icon {
+            color: var(--branch-color);
+        }
+
+        .feature-card.compile .feature-icon {
+            color: var(--compile-color);
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            color: var(--gray-color);
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
+        }
+
+        /* 剧情演示区 */
+        .story-demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 992px) {
+            .story-demo-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .script-editor {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .editor-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .editor-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .editor-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .editor-btn.compile {
+            background-color: rgba(56, 176, 0, 0.3);
+        }
+
+        .editor-btn.compile:hover {
+            background-color: rgba(56, 176, 0, 0.5);
+        }
+
+        .script-area {
+            flex-grow: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #abb2bf;
+            line-height: 1.5;
+            overflow-y: auto;
+            resize: none;
+            white-space: pre;
+        }
+
+        .script-area:focus {
+            outline: none;
+            border-color: var(--dialogue-color);
+        }
+
+        /* 剧情播放器 */
+        .story-player {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .player-header {
+            color: white;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .player-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .player-btn {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .player-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .player-content {
+            flex-grow: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dialogue-line {
+            margin-bottom: 1.5rem;
+            color: white;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .character-name {
+            font-weight: 600;
+            color: var(--dialogue-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .dialogue-text {
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .dialogue-choices {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .choice-btn {
+            background-color: rgba(114, 9, 183, 0.3);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        .choice-btn:hover {
+            background-color: rgba(114, 9, 183, 0.5);
+            transform: translateX(5px);
+        }
+
+        .player-status {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 编译结果展示 */
+        .compile-results {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .results-header {
+            color: white;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .results-content {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #abb2bf;
+            line-height: 1.5;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre;
+        }
+
+        .compile-success {
+            border-left: 4px solid var(--compile-color);
+            padding-left: 1rem;
+            margin-top: 1rem;
+            color: #90ee90;
+        }
+
+        .compile-error {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 1rem;
+            margin-top: 1rem;
+            color: #ff6b6b;
+        }
+
+        /* 代码演示 */
+        .code-demo {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem 1.2rem;
+            color: #abb2bf;
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #abb2bf;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .hljs {
+            background: transparent;
+        }
+
+        /* 文件结构 */
+        .file-structure {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 1.5rem;
+        }
+
+        .file-tree li {
+            position: relative;
+            padding: 0.2rem 0;
+        }
+
+        .file-tree li:before {
+            content: "📁";
+            position: absolute;
+            left: -1.2rem;
+        }
+
+        .file-tree .file:before {
+            content: "📄";
+        }
+
+        .file-tree .yaml-file:before {
+            content: "📝";
+        }
+
+        .file-tree .json-file:before {
+            content: "📋";
+        }
+
+        .file-tree .js-file:before {
+            content: "📜";
+        }
+
+        /* 相关资源 */
+        .resource-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .resource-link:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* 页面导航 */
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .nav-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                justify-content: center;
+            }
+            
+            .subpage-title h1 {
+                font-size: 1.7rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="subpage-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 返回主页
+                </a>
+                
+                <div class="subpage-title">
+                    <h1>可编译游戏剧情系统</h1>
+                    <p>剧情脚本、分支选择与编译转换系统</p>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="#story-demo"><i class="fas fa-play"></i> 剧情演示</a>
+                    <a href="#code-demo"><i class="fas fa-code"></i> 代码</a>
+                    <a href="#file-structure"><i class="fas fa-folder"></i> 文件</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <!-- 项目概览 -->
+        <section class="page-section">
+            <h2 class="section-title">项目概览</h2>
+            
+            <div class="project-overview">
+                <div class="project-description">
+                    <p>可编译游戏剧情系统是一个完整的剧情脚本解决方案，支持复杂的剧情分支、角色对话、条件判断和变量系统。系统采用YAML格式的剧情脚本，可以编译为多种游戏引擎可用的格式，如JSON、Lua或C#脚本。</p>
+                    
+                    <p>系统包含一个强大的剧情解析器和编译器，能够处理嵌套条件、循环、变量赋值和函数调用。支持实时预览和调试，使剧情设计者能够快速迭代和测试剧情流程。</p>
+                    
+                    <p>本页面将展示剧情脚本的编写、编译过程，以及一个交互式的剧情播放器。您可以直接编辑剧情脚本，编译并查看结果，然后在播放器中体验剧情流程。</p>
+                </div>
+                
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">技术栈:</span>
+                        <span class="meta-value">JavaScript + YAML</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">文件数量:</span>
+                        <span class="meta-value">16个</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">最后更新:</span>
+                        <span class="meta-value">2023-11-15</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">输出格式:</span>
+                        <span class="meta-value">JSON, Lua, C#</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">支持功能:</span>
+                        <span class="meta-value">分支/变量/条件</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">编译器:</span>
+                        <span class="meta-value">自定义编译引擎</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 系统特性 -->
+        <section class="page-section">
+            <h2 class="section-title">系统特性</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h4>对话系统</h4>
+                    <p>支持多角色对话、表情标记、语音触发和自动文本显示效果。可以嵌入变量和内联表达式。</p>
+                </div>
+                
+                <div class="feature-card branch">
+                    <div class="feature-icon">
+                        <i class="fas fa-code-branch"></i>
+                    </div>
+                    <h4>分支选择</h4>
+                    <p>复杂的剧情分支系统，支持条件分支、随机分支和基于玩家变量的动态分支选择。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-vial"></i>
+                    </div>
+                    <h4>条件系统</h4>
+                    <p>强大的条件判断系统，支持变量比较、逻辑运算和自定义条件函数。</p>
+                </div>
+                
+                <div class="feature-card compile">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h4>多格式编译</h4>
+                    <p>可将YAML剧情脚本编译为JSON、Lua、C#等多种格式，适配不同游戏引擎。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <h4>变量系统</h4>
+                    <p>全局变量和局部变量支持，支持变量赋值、递增递减和复杂表达式计算。</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <h4>调试工具</h4>
+                    <p>内置调试器，支持断点设置、变量监视和剧情流程跟踪，便于问题排查。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 剧情演示 -->
+        <section class="page-section" id="story-demo">
+            <h2 class="section-title">剧情脚本演示</h2>
+            
+            <div class="story-demo-container">
+                <!-- 脚本编辑器 -->
+                <div class="script-editor">
+                    <div class="editor-header">
+                        <div class="editor-title">
+                            <i class="fas fa-file-code"></i>
+                            <span>剧情脚本编辑器 (YAML格式)</span>
+                        </div>
+                        <div class="editor-actions">
+                            <button class="editor-btn" id="loadExampleBtn">
+                                <i class="fas fa-download"></i> 加载示例
+                            </button>
+                            <button class="editor-btn compile" id="compileBtn">
+                                <i class="fas fa-cog"></i> 编译脚本
+                            </button>
+                        </div>
+                    </div>
+                    <textarea class="script-area" id="scriptEditor" spellcheck="false"># 可编译游戏剧情示例
+# 这是一个简单的冒险游戏剧情脚本
+
+metadata:
+  title: "森林探险"
+  author: "BDCG剧情系统"
+  version: "1.0.0"
+  description: "一个简单的森林冒险剧情示例"
+
+variables:
+  player:
+    name: "冒险者"
+    health: 100
+    gold: 50
+  story:
+    met_old_man: false
+    found_treasure: false
+
+start: scene_forest_entry
+
+scenes:
+  scene_forest_entry:
+    - type: narration
+      text: "你来到了一片神秘的森林入口。阳光透过树叶洒下斑驳的光影，空气中弥漫着泥土和花香。"
+    
+    - type: dialogue
+      character: "系统"
+      text: "欢迎来到《森林探险》！请输入你的角色名："
+      input:
+        var: "player.name"
+        prompt: "角色名"
+    
+    - type: dialogue
+      character: "旁白"
+      text: "{{player.name}}深吸一口气，踏入了森林。"
+    
+    - goto: scene_forest_path
+
+  scene_forest_path:
+    - type: narration
+      text: "你沿着一条蜿蜒的小径深入森林。不久，你遇到了一个岔路口。"
+    
+    - type: choice
+      prompt: "你要选择哪条路？"
+      options:
+        - text: "走左边的小路"
+          condition: "not story.met_old_man"
+          actions:
+            - set: "story.met_old_man = true"
+          goto: scene_left_path
+        
+        - text: "走右边的小路"
+          condition: "not story.found_treasure"
+          goto: scene_right_path
+        
+        - text: "返回入口"
+          goto: scene_forest_entry
+
+  scene_left_path:
+    - type: dialogue
+      character: "神秘老人"
+      expression: "smile"
+      text: "哦？一位年轻的冒险者。我是森林的守护者。"
+    
+    - type: dialogue
+      character: "{{player.name}}"
+      text: "您好，老先生。我正在探索这片森林。"
+    
+    - type: dialogue
+      character: "神秘老人"
+      expression: "wise"
+      text: "森林深处隐藏着宝藏，但也充满危险。这个护身符可能会帮到你。"
+    
+    - type: action
+      action: "add_item"
+      params:
+        item: "护身符"
+        description: "一个古老的护身符，散发着微弱的光芒"
+    
+    - type: dialogue
+      character: "{{player.name}}"
+      text: "谢谢您！我会小心的。"
+    
+    - type: narration
+      text: "老人点点头，消失在树林中。"
+    
+    - goto: scene_forest_path
+
+  scene_right_path:
+    - type: narration
+      text: "右边的道路越来越崎岖。你注意到一些奇怪的脚印。"
+    
+    - type: choice
+      prompt: "你发现了什么？"
+      options:
+        - text: "调查脚印"
+          goto: scene_investigate_footprints
+        
+        - text: "忽略脚印，继续前进"
+          goto: scene_continue_path
+        
+        - text: "返回岔路口"
+          goto: scene_forest_path
+
+  scene_investigate_footprints:
+    - type: narration
+      text: "你蹲下仔细查看脚印。它们看起来像是大型猫科动物的足迹。"
+    
+    - type: choice
+      prompt: "接下来怎么做？"
+      options:
+        - text: "沿着脚印追踪"
+          condition: "player.health > 30"
+          goto: scene_track_footprints
+        
+        - text: "小心地绕开"
+          goto: scene_avoid_footprints
+        
+        - text: "快速离开这个区域"
+          goto: scene_forest_path
+
+  scene_track_footprints:
+    - type: narration
+      text: "你小心翼翼地沿着脚印前进，来到一个隐蔽的洞穴前。"
+    
+    - type: dialogue
+      character: "系统"
+      text: "发现隐藏的洞穴！里面似乎有什么东西在发光。"
+    
+    - type: choice
+      prompt: "进入洞穴吗？"
+      options:
+        - text: "进入洞穴探索"
+          actions:
+            - set: "story.found_treasure = true"
+            - set: "player.gold = player.gold + 100"
+          goto: scene_cave_treasure
+        
+        - text: "太危险了，还是离开吧"
+          goto: scene_forest_path
+
+  scene_cave_treasure:
+    - type: narration
+      text: "洞穴深处，你发现了一个古老的宝箱！"
+    
+    - type: dialogue
+      character: "{{player.name}}"
+      text: "太棒了！是宝藏！"
+    
+    - type: action
+      action: "show_message"
+      params:
+        message: "你获得了100枚金币！"
+    
+    - type: dialogue
+      character: "系统"
+      text: "当前状态：生命值 {{player.health}}，金币 {{player.gold}}"
+    
+    - type: narration
+      text: "带着宝藏，你安全地离开了森林。冒险结束了...吗？"
+    
+    - type: end
+      text: "恭喜你完成了这次冒险！"
+
+  scene_avoid_footprints:
+    - type: narration
+      text: "你决定避开这些危险的脚印，绕道而行。"
+    
+    - goto: scene_forest_path
+
+  scene_continue_path:
+    - type: narration
+      text: "你继续沿着小路前进，最终回到了森林入口。"
+    
+    - goto: scene_forest_entry</textarea>
+                </div>
+                
+                <!-- 剧情播放器 -->
+                <div class="story-player">
+                    <div class="player-header">
+                        <div class="player-title">
+                            <i class="fas fa-play-circle"></i>
+                            <span>剧情播放器</span>
+                        </div>
+                        <div class="player-controls">
+                            <button class="player-btn" id="restartBtn">
+                                <i class="fas fa-redo"></i> 重新开始
+                            </button>
+                            <button class="player-btn" id="nextBtn">
+                                <i class="fas fa-forward"></i> 继续
+                            </button>
+                        </div>
+                    </div>
+                    <div class="player-content" id="playerContent">
+                        <!-- 剧情内容将通过JavaScript动态生成 -->
+                        <div class="dialogue-line">
+                            <div class="character-name">系统</div>
+                            <div class="dialogue-text">点击"加载示例"按钮加载剧情脚本，然后点击"编译脚本"进行编译。编译成功后，点击"继续"按钮开始播放剧情。</div>
+                        </div>
+                    </div>
+                    <div class="player-status" id="playerStatus">
+                        状态: 等待编译...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 编译结果 -->
+            <div class="compile-results" id="compileResults" style="display: none;">
+                <div class="results-header">
+                    <div class="results-title">
+                        <i class="fas fa-cogs"></i>
+                        <span>编译结果</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="editor-btn" id="copyResultsBtn">
+                            <i class="far fa-copy"></i> 复制结果
+                        </button>
+                    </div>
+                </div>
+                <div class="results-content" id="resultsContent">
+                    <!-- 编译结果将通过JavaScript动态生成 -->
+                </div>
+                <div class="compile-success" id="compileSuccess">
+                    <i class="fas fa-check-circle"></i> 编译成功！现在可以在剧情播放器中体验剧情。
+                </div>
+                <div class="compile-error" id="compileError" style="display: none;">
+                    <i class="fas fa-exclamation-circle"></i> 编译失败！请检查脚本语法。
+                </div>
+            </div>
+        </section>
+
+        <!-- 代码演示 -->
+        <section class="page-section" id="code-demo">
+            <h2 class="section-title">核心代码实现</h2>
+            
+            <h3 class="section-subtitle">剧情解析器 (StoryParser.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>game-scripts/story-system/StoryParser.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code1')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code1">/**
+ * 可编译游戏剧情系统 - 剧情解析器
+ * 负责解析YAML格式的剧情脚本，构建剧情数据结构
+ */
+class StoryParser {
+    constructor() {
+        this.storyData = null;
+        this.currentScene = null;
+        this.variables = {};
+        this.sceneStack = [];
+        
+        // 支持的指令类型
+        this.instructionTypes = {
+            'narration': this.parseNarration.bind(this),
+            'dialogue': this.parseDialogue.bind(this),
+            'choice': this.parseChoice.bind(this),
+            'action': this.parseAction.bind(this),
+            'goto': this.parseGoto.bind(this),
+            'end': this.parseEnd.bind(this)
+        };
+        
+        // 条件表达式解析器
+        this.conditionParser = new ConditionParser();
+        
+        // 变量作用域
+        this.scopes = {
+            global: {},
+            local: {}
+        };
+    }
+    
+    /**
+     * 解析YAML剧情脚本
+     */
+    parse(yamlScript) {
+        try {
+            // 这里简化处理，实际应该使用YAML解析库
+            // 对于演示，我们假设已经将YAML转换为JavaScript对象
+            this.storyData = this.convertYamlToObject(yamlScript);
+            
+            // 初始化变量
+            this.initVariables();
+            
+            // 验证剧情结构
+            this.validateStory();
+            
+            console.log('剧情脚本解析成功');
+            return {
+                success: true,
+                data: this.storyData,
+                variables: this.variables
+            };
+            
+        } catch (error) {
+            console.error('剧情脚本解析失败:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    
+    /**
+     * 将YAML转换为JavaScript对象（简化版本）
+     */
+    convertYamlToObject(yamlScript) {
+        // 实际项目中应该使用js-yaml等库
+        // 这里为了演示，我们直接使用示例数据结构
+        return this.getExampleStoryData();
+    }
+    
+    /**
+     * 获取示例剧情数据
+     */
+    getExampleStoryData() {
+        return {
+            metadata: {
+                title: "森林探险",
+                author: "BDCG剧情系统",
+                version: "1.0.0",
+                description: "一个简单的森林冒险剧情示例"
+            },
+            variables: {
+                player: {
+                    name: "冒险者",
+                    health: 100,
+                    gold: 50
+                },
+                story: {
+                    met_old_man: false,
+                    found_treasure: false
+                }
+            },
+            start: "scene_forest_entry",
+            scenes: {
+                scene_forest_entry: [
+                    {
+                        type: "narration",
+                        text: "你来到了一片神秘的森林入口。阳光透过树叶洒下斑驳的光影，空气中弥漫着泥土和花香。"
+                    },
+                    {
+                        type: "dialogue",
+                        character: "系统",
+                        text: "欢迎来到《森林探险》！请输入你的角色名：",
+                        input: {
+                            var: "player.name",
+                            prompt: "角色名"
+                        }
+                    },
+                    {
+                        type: "dialogue",
+                        character: "旁白",
+                        text: "{{player.name}}深吸一口气，踏入了森林。"
+                    },
+                    {
+                        type: "goto",
+                        scene: "scene_forest_path"
+                    }
+                ],
+                scene_forest_path: [
+                    {
+                        type: "narration",
+                        text: "你沿着一条蜿蜒的小径深入森林。不久，你遇到了一个岔路口。"
+                    },
+                    {
+                        type: "choice",
+                        prompt: "你要选择哪条路？",
+                        options: [
+                            {
+                                text: "走左边的小路",
+                                condition: "not story.met_old_man",
+                                actions: [
+                                    {
+                                        type: "set",
+                                        var: "story.met_old_man",
+                                        value: true
+                                    }
+                                ],
+                                goto: "scene_left_path"
+                            },
+                            {
+                                text: "走右边的小路",
+                                condition: "not story.found_treasure",
+                                goto: "scene_right_path"
+                            },
+                            {
+                                text: "返回入口",
+                                goto: "scene_forest_entry"
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+    }
+    
+    /**
+     * 初始化变量系统
+     */
+    initVariables() {
+        if (this.storyData.variables) {
+            this.variables = this.deepClone(this.storyData.variables);
+        }
+        
+        // 添加系统变量
+        this.variables.system = {
+            current_scene: this.storyData.start,
+            previous_scene: null,
+            step_index: 0
+        };
+    }
+    
+    /**
+     * 验证剧情结构
+     */
+    validateStory() {
+        // 检查必需字段
+        if (!this.storyData.start) {
+            throw new Error("剧情脚本缺少起始场景(start)");
+        }
+        
+        if (!this.storyData.scenes) {
+            throw new Error("剧情脚本缺少场景定义(scenes)");
+        }
+        
+        // 检查起始场景是否存在
+        if (!this.storyData.scenes[this.storyData.start]) {
+            throw new Error(`起始场景 "${this.storyData.start}" 不存在`);
+        }
+        
+        // 验证所有场景
+        for (const [sceneId, sceneSteps] of Object.entries(this.storyData.scenes)) {
+            this.validateScene(sceneId, sceneSteps);
+        }
+    }
+    
+    /**
+     * 验证场景
+     */
+    validateScene(sceneId, sceneSteps) {
+        if (!Array.isArray(sceneSteps)) {
+            throw new Error(`场景 "${sceneId}" 必须是一个步骤数组`);
+        }
+        
+        for (let i = 0; i < sceneSteps.length; i++) {
+            const step = sceneSteps[i];
+            this.validateStep(step, sceneId, i);
+        }
+    }
+    
+    /**
+     * 验证步骤
+     */
+    validateStep(step, sceneId, stepIndex) {
+        // 检查步骤类型
+        if (!step.type) {
+            throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步缺少类型(type)`);
+        }
+        
+        // 检查是否支持该类型
+        if (!this.instructionTypes[step.type]) {
+            throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步包含未知类型: ${step.type}`);
+        }
+        
+        // 类型特定的验证
+        switch (step.type) {
+            case 'narration':
+                if (!step.text) {
+                    throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步(旁白)缺少文本(text)`);
+                }
+                break;
+                
+            case 'dialogue':
+                if (!step.character) {
+                    throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步(对话)缺少角色(character)`);
+                }
+                if (!step.text) {
+                    throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步(对话)缺少文本(text)`);
+                }
+                break;
+                
+            case 'choice':
+                if (!step.prompt) {
+                    throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步(选择)缺少提示(prompt)`);
+                }
+                if (!step.options || !Array.isArray(step.options) || step.options.length === 0) {
+                    throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步(选择)缺少选项(options)`);
+                }
+                break;
+                
+            case 'goto':
+                if (!step.scene) {
+                    throw new Error(`场景 "${sceneId}" 的第 ${stepIndex + 1} 步(跳转)缺少目标场景(scene)`);
+                }
+                break;
+        }
+    }
+    
+    /**
+     * 获取当前场景
+     */
+    getCurrentScene() {
+        const sceneId = this.variables.system.current_scene;
+        return {
+            id: sceneId,
+            steps: this.storyData.scenes[sceneId],
+            currentStep: this.variables.system.step_index
+        };
+    }
+    
+    /**
+     * 执行下一步
+     */
+    async executeNext() {
+        const currentScene = this.getCurrentScene();
+        const stepIndex = currentScene.currentStep;
+        
+        // 检查是否已经到达场景末尾
+        if (stepIndex >= currentScene.steps.length) {
+            return {
+                type: 'end',
+                message: '场景已结束'
+            };
+        }
+        
+        const step = currentScene.steps[stepIndex];
+        
+        // 更新步骤索引
+        this.variables.system.step_index++;
+        
+        // 执行步骤
+        return await this.executeStep(step);
+    }
+    
+    /**
+     * 执行步骤
+     */
+    async executeStep(step) {
+        const instructionHandler = this.instructionTypes[step.type];
+        if (instructionHandler) {
+            return await instructionHandler(step);
+        }
+        
+        throw new Error(`未知的步骤类型: ${step.type}`);
+    }
+    
+    /**
+     * 解析旁白步骤
+     */
+    async parseNarration(step) {
+        // 处理变量插值
+        const processedText = this.interpolateVariables(step.text);
+        
+        return {
+            type: 'narration',
+            text: processedText,
+            metadata: step.metadata || {}
+        };
+    }
+    
+    /**
+     * 解析对话步骤
+     */
+    async parseDialogue(step) {
+        // 处理变量插值
+        const processedCharacter = this.interpolateVariables(step.character);
+        const processedText = this.interpolateVariables(step.text);
+        
+        const result = {
+            type: 'dialogue',
+            character: processedCharacter,
+            text: processedText,
+            expression: step.expression || 'neutral',
+            metadata: step.metadata || {}
+        };
+        
+        // 如果有输入要求
+        if (step.input) {
+            result.input = step.input;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 解析选择步骤
+     */
+    async parseChoice(step) {
+        const processedPrompt = this.interpolateVariables(step.prompt);
+        
+        // 过滤可用的选项（基于条件）
+        const availableOptions = [];
+        
+        for (const option of step.options) {
+            let isAvailable = true;
+            
+            // 检查条件
+            if (option.condition) {
+                try {
+                    isAvailable = this.conditionParser.evaluate(
+                        option.condition, 
+                        this.variables
+                    );
+                } catch (error) {
+                    console.warn(`条件解析失败: ${option.condition}`, error);
+                    isAvailable = false;
+                }
+            }
+            
+            if (isAvailable) {
+                const processedOption = {
+                    text: this.interpolateVariables(option.text),
+                    value: option.value || option.text,
+                    metadata: option.metadata || {}
+                };
+                
+                // 保存原始选项数据，用于后续执行
+                processedOption._original = option;
+                
+                availableOptions.push(processedOption);
+            }
+        }
+        
+        return {
+            type: 'choice',
+            prompt: processedPrompt,
+            options: availableOptions,
+            metadata: step.metadata || {}
+        };
+    }
+    
+    /**
+     * 解析动作步骤
+     */
+    async parseAction(step) {
+        // 执行动作
+        await this.executeAction(step.action, step.params || {});
+        
+        return {
+            type: 'action',
+            action: step.action,
+            params: step.params || {},
+            metadata: step.metadata || {}
+        };
+    }
+    
+    /**
+     * 执行动作
+     */
+    async executeAction(action, params) {
+        switch (action) {
+            case 'set':
+                await this.executeSetAction(params);
+                break;
+                
+            case 'add_item':
+                console.log(`添加物品: ${JSON.stringify(params)}`);
+                break;
+                
+            case 'show_message':
+                console.log(`显示消息: ${params.message}`);
+                break;
+                
+            default:
+                console.warn(`未知的动作: ${action}`);
+        }
+    }
+    
+    /**
+     * 执行设置变量动作
+     */
+    async executeSetAction(params) {
+        if (!params.var || params.value === undefined) {
+            console.warn('set动作缺少参数: var或value');
+            return;
+        }
+        
+        // 解析变量路径，如 "player.name" 或 "story.met_old_man"
+        const varPath = params.var.split('.');
+        let target = this.variables;
+        
+        // 导航到变量路径的父级
+        for (let i = 0; i < varPath.length - 1; i++) {
+            const key = varPath[i];
+            if (!target[key]) {
+                target[key] = {};
+            }
+            target = target[key];
+        }
+        
+        // 设置值
+        const lastKey = varPath[varPath.length - 1];
+        target[lastKey] = params.value;
+        
+        console.log(`变量设置: ${params.var} = ${params.value}`);
+    }
+    
+    /**
+     * 解析跳转步骤
+     */
+    async parseGoto(step) {
+        // 更新当前场景
+        this.variables.system.previous_scene = this.variables.system.current_scene;
+        this.variables.system.current_scene = step.scene;
+        this.variables.system.step_index = 0;
+        
+        return {
+            type: 'goto',
+            scene: step.scene,
+            metadata: step.metadata || {}
+        };
+    }
+    
+    /**
+     * 解析结束步骤
+     */
+    async parseEnd(step) {
+        return {
+            type: 'end',
+            text: this.interpolateVariables(step.text || '剧情结束'),
+            metadata: step.metadata || {}
+        };
+    }
+    
+    /**
+     * 处理选择结果
+     */
+    async handleChoice(choiceIndex, option) {
+        // 执行选项的动作
+        if (option._original && option._original.actions) {
+            for (const action of option._original.actions) {
+                await this.executeAction(action.type || 'set', action);
+            }
+        }
+        
+        // 处理跳转
+        if (option._original && option._original.goto) {
+            await this.parseGoto({ scene: option._original.goto });
+        }
+        
+        return {
+            type: 'choice_result',
+            selected: option.text,
+            nextScene: this.variables.system.current_scene
+        };
+    }
+    
+    /**
+     * 处理变量插值
+     */
+    interpolateVariables(text) {
+        if (typeof text !== 'string') return text;
+        
+        return text.replace(/\{\{([^}]+)\}\}/g, (match, varPath) => {
+            try {
+                const value = this.getVariableValue(varPath.trim());
+                return value !== undefined ? value : match;
+            } catch (error) {
+                console.warn(`变量插值失败: ${varPath}`, error);
+                return match;
+            }
+        });
+    }
+    
+    /**
+     * 获取变量值
+     */
+    getVariableValue(varPath) {
+        const path = varPath.split('.');
+        let current = this.variables;
+        
+        for (const key of path) {
+            if (current && typeof current === 'object' && key in current) {
+                current = current[key];
+            } else {
+                return undefined;
+            }
+        }
+        
+        return current;
+    }
+    
+    /**
+     * 深拷贝对象
+     */
+    deepClone(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+    
+    /**
+     * 重置解析器状态
+     */
+    reset() {
+        this.currentScene = null;
+        this.sceneStack = [];
+        this.initVariables();
+    }
+}</code></pre>
+            </div>
+            
+            <h3 class="section-subtitle">剧情编译器 (StoryCompiler.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>game-scripts/story-system/StoryCompiler.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code2')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code2">/**
+ * 可编译游戏剧情系统 - 剧情编译器
+ * 负责将解析后的剧情数据编译为不同目标格式
+ */
+class StoryCompiler {
+    constructor() {
+        this.parsedStory = null;
+        this.compilationOptions = {
+            format: 'json', // json, lua, cs
+            minify: false,
+            includeMetadata: true,
+            embedVariables: true
+        };
+    }
+    
+    /**
+     * 编译剧情
+     */
+    compile(parsedStory, options = {}) {
+        this.parsedStory = parsedStory;
+        this.compilationOptions = { ...this.compilationOptions, ...options };
+        
+        try {
+            let compiledResult;
+            
+            switch (this.compilationOptions.format) {
+                case 'json':
+                    compiledResult = this.compileToJson();
+                    break;
+                    
+                case 'lua':
+                    compiledResult = this.compileToLua();
+                    break;
+                    
+                case 'cs':
+                    compiledResult = this.compileToCSharp();
+                    break;
+                    
+                default:
+                    throw new Error(`不支持的输出格式: ${this.compilationOptions.format}`);
+            }
+            
+            return {
+                success: true,
+                format: this.compilationOptions.format,
+                data: compiledResult,
+                stats: this.getCompilationStats()
+            };
+            
+        } catch (error) {
+            console.error('剧情编译失败:', error);
+            return {
+                success: false,
+                error: error.message,
+                format: this.compilationOptions.format
+            };
+        }
+    }
+    
+    /**
+     * 编译为JSON格式
+     */
+    compileToJson() {
+        const compilation = {
+            metadata: this.compilationOptions.includeMetadata ? this.parsedStory.metadata : null,
+            compiledAt: new Date().toISOString(),
+            format: 'json',
+            version: '1.0'
+        };
+        
+        // 嵌入变量
+        if (this.compilationOptions.embedVariables) {
+            compilation.variables = this.parsedStory.variables;
+        }
+        
+        // 编译场景
+        compilation.scenes = {};
+        
+        for (const [sceneId, sceneSteps] of Object.entries(this.parsedStory.scenes)) {
+            compilation.scenes[sceneId] = this.compileScene(sceneSteps);
+        }
+        
+        // 设置起始场景
+        compilation.start = this.parsedStory.start;
+        
+        // 生成场景图
+        compilation.sceneGraph = this.generateSceneGraph();
+        
+        // 如果需要压缩
+        if (this.compilationOptions.minify) {
+            return JSON.stringify(compilation);
+        } else {
+            return JSON.stringify(compilation, null, 2);
+        }
+    }
+    
+    /**
+     * 编译场景
+     */
+    compileScene(sceneSteps) {
+        return sceneSteps.map(step => this.compileStep(step));
+    }
+    
+    /**
+     * 编译步骤
+     */
+    compileStep(step) {
+        const compiledStep = {
+            type: step.type
+        };
+        
+        switch (step.type) {
+            case 'narration':
+                compiledStep.text = step.text;
+                compiledStep.id = this.generateStepId('narration', step.text);
+                break;
+                
+            case 'dialogue':
+                compiledStep.character = step.character;
+                compiledStep.text = step.text;
+                compiledStep.expression = step.expression || 'neutral';
+                compiledStep.id = this.generateStepId('dialogue', step.character, step.text);
+                
+                if (step.input) {
+                    compiledStep.input = step.input;
+                }
+                break;
+                
+            case 'choice':
+                compiledStep.prompt = step.prompt;
+                compiledStep.id = this.generateStepId('choice', step.prompt);
+                compiledStep.options = step.options.map((option, index) => {
+                    const compiledOption = {
+                        id: `option_${index + 1}`,
+                        text: option.text,
+                        value: option.value || option.text
+                    };
+                    
+                    if (option.condition) {
+                        compiledOption.condition = option.condition;
+                    }
+                    
+                    if (option.actions && option.actions.length > 0) {
+                        compiledOption.actions = option.actions;
+                    }
+                    
+                    if (option.goto) {
+                        compiledOption.goto = option.goto;
+                    }
+                    
+                    return compiledOption;
+                });
+                break;
+                
+            case 'action':
+                compiledStep.action = step.action;
+                compiledStep.params = step.params || {};
+                compiledStep.id = this.generateStepId('action', step.action);
+                break;
+                
+            case 'goto':
+                compiledStep.scene = step.scene;
+                compiledStep.id = this.generateStepId('goto', step.scene);
+                break;
+                
+            case 'end':
+                compiledStep.text = step.text || '剧情结束';
+                compiledStep.id = this.generateStepId('end', step.text);
+                break;
+        }
+        
+        // 添加元数据（如果有）
+        if (step.metadata) {
+            compiledStep.metadata = step.metadata;
+        }
+        
+        return compiledStep;
+    }
+    
+    /**
+     * 生成步骤ID
+     */
+    generateStepId(type, ...parts) {
+        const base = `${type}_${parts.join('_')}`;
+        
+        // 简化字符串：移除特殊字符，限制长度
+        let id = base
+            .toLowerCase()
+            .replace(/[^a-z0-9_]/g, '_')
+            .replace(/_+/g, '_')
+            .substring(0, 50);
+        
+        // 添加哈希以确保唯一性
+        const hash = this.simpleHash(base);
+        id += `_${hash}`;
+        
+        return id;
+    }
+    
+    /**
+     * 简单哈希函数
+     */
+    simpleHash(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        return Math.abs(hash).toString(16).substring(0, 6);
+    }
+    
+    /**
+     * 生成场景图
+     */
+    generateSceneGraph() {
+        const graph = {
+            nodes: [],
+            edges: []
+        };
+        
+        // 添加场景节点
+        for (const sceneId of Object.keys(this.parsedStory.scenes)) {
+            graph.nodes.push({
+                id: sceneId,
+                type: 'scene',
+                label: sceneId.replace('scene_', '')
+            });
+        }
+        
+        // 添加起始节点
+        graph.nodes.push({
+            id: 'start',
+            type: 'start',
+            label: '开始'
+        });
+        
+        // 添加起始边
+        graph.edges.push({
+            from: 'start',
+            to: this.parsedStory.start,
+            label: '起始'
+        });
+        
+        // 分析场景之间的跳转关系
+        for (const [sceneId, sceneSteps] of Object.entries(this.parsedStory.scenes)) {
+            for (const step of sceneSteps) {
+                if (step.type === 'goto') {
+                    graph.edges.push({
+                        from: sceneId,
+                        to: step.scene,
+                        label: '跳转'
+                    });
+                } else if (step.type === 'choice') {
+                    for (const option of step.options) {
+                        if (option.goto) {
+                            graph.edges.push({
+                                from: sceneId,
+                                to: option.goto,
+                                label: `选择: ${option.text.substring(0, 15)}...`
+                            });
+                        }
+                    }
+                } else if (step.type === 'end') {
+                    graph.edges.push({
+                        from: sceneId,
+                        to: 'end',
+                        label: '结束'
+                    });
+                }
+            }
+        }
+        
+        // 添加结束节点
+        graph.nodes.push({
+            id: 'end',
+            type: 'end',
+            label: '结束'
+        });
+        
+        return graph;
+    }
+    
+    /**
+     * 编译为Lua格式
+     */
+    compileToLua() {
+        let luaCode = `-- 自动生成的剧情脚本\n`;
+        luaCode += `-- 编译时间: ${new Date().toISOString()}\n`;
+        luaCode += `-- 格式: Lua\n\n`;
+        
+        luaCode += `local story = {\n`;
+        
+        // 添加元数据
+        if (this.compilationOptions.includeMetadata && this.parsedStory.metadata) {
+            luaCode += `  metadata = {\n`;
+            for (const [key, value] of Object.entries(this.parsedStory.metadata)) {
+                luaCode += `    ${key} = "${value}",\n`;
+            }
+            luaCode += `  },\n`;
+        }
+        
+        // 添加起始场景
+        luaCode += `  start = "${this.parsedStory.start}",\n\n`;
+        
+        // 添加场景
+        luaCode += `  scenes = {\n`;
+        
+        for (const [sceneId, sceneSteps] of Object.entries(this.parsedStory.scenes)) {
+            luaCode += `    ["${sceneId}"] = {\n`;
+            
+            for (const step of sceneSteps) {
+                luaCode += this.compileStepToLua(step, 6);
+            }
+            
+            luaCode += `    },\n`;
+        }
+        
+        luaCode += `  }\n`;
+        luaCode += `}\n\n`;
+        luaCode += `return story\n`;
+        
+        return luaCode;
+    }
+    
+    /**
+     * 编译步骤为Lua
+     */
+    compileStepToLua(step, indent = 2) {
+        const indentStr = ' '.repeat(indent);
+        let luaStep = `${indentStr}{\n`;
+        
+        luaStep += `${indentStr}  type = "${step.type}",\n`;
+        
+        switch (step.type) {
+            case 'narration':
+                luaStep += `${indentStr}  text = "${this.escapeString(step.text)}",\n`;
+                break;
+                
+            case 'dialogue':
+                luaStep += `${indentStr}  character = "${step.character}",\n`;
+                luaStep += `${indentStr}  text = "${this.escapeString(step.text)}",\n`;
+                if (step.expression) {
+                    luaStep += `${indentStr}  expression = "${step.expression}",\n`;
+                }
+                break;
+                
+            case 'choice':
+                luaStep += `${indentStr}  prompt = "${this.escapeString(step.prompt)}",\n`;
+                luaStep += `${indentStr}  options = {\n`;
+                
+                for (const option of step.options) {
+                    luaStep += `${indentStr}    {\n`;
+                    luaStep += `${indentStr}      text = "${this.escapeString(option.text)}",\n`;
+                    
+                    if (option.condition) {
+                        luaStep += `${indentStr}      condition = "${this.escapeString(option.condition)}",\n`;
+                    }
+                    
+                    if (option.goto) {
+                        luaStep += `${indentStr}      goto = "${option.goto}",\n`;
+                    }
+                    
+                    luaStep += `${indentStr}    },\n`;
+                }
+                
+                luaStep += `${indentStr}  },\n`;
+                break;
+                
+            case 'goto':
+                luaStep += `${indentStr}  scene = "${step.scene}",\n`;
+                break;
+                
+            case 'end':
+                luaStep += `${indentStr}  text = "${this.escapeString(step.text || "剧情结束")}",\n`;
+                break;
+        }
+        
+        luaStep += `${indentStr}},\n`;
+        return luaStep;
+    }
+    
+    /**
+     * 转义字符串
+     */
+    escapeString(str) {
+        if (typeof str !== 'string') return str;
+        return str.replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+    
+    /**
+     * 编译为C#格式
+     */
+    compileToCSharp() {
+        let csCode = `// 自动生成的剧情脚本\n`;
+        csCode += `// 编译时间: ${new Date().toISOString()}\n`;
+        csCode += `// 格式: C#\n\n`;
+        
+        csCode += `using System.Collections.Generic;\n\n`;
+        csCode += `namespace BDCG.StorySystem.Generated\n{\n`;
+        csCode += `    public class CompiledStory\n    {\n`;
+        
+        // 添加属性
+        if (this.compilationOptions.includeMetadata && this.parsedStory.metadata) {
+            csCode += `        // 元数据\n`;
+            csCode += `        public class Metadata\n        {\n`;
+            for (const [key, value] of Object.entries(this.parsedStory.metadata)) {
+                csCode += `            public string ${this.capitalize(key)} { get; set; } = "${value}";\n`;
+            }
+            csCode += `        }\n\n`;
+            csCode += `        public Metadata StoryMetadata { get; } = new Metadata();\n\n`;
+        }
+        
+        // 添加起始场景属性
+        csCode += `        public string StartScene { get; } = "${this.parsedStory.start}";\n\n`;
+        
+        // 添加场景字典
+        csCode += `        public Dictionary<string, List<StoryStep>> Scenes { get; } = new Dictionary<string, List<StoryStep>>()\n        {\n`;
+        
+        for (const [sceneId, sceneSteps] of Object.entries(this.parsedStory.scenes)) {
+            csCode += `            {\n`;
+            csCode += `                "${sceneId}",\n`;
+            csCode += `                new List<StoryStep>()\n                {\n`;
+            
+            for (const step of sceneSteps) {
+                csCode += this.compileStepToCSharp(step, 20);
+            }
+            
+            csCode += `                }\n`;
+            csCode += `            },\n`;
+        }
+        
+        csCode += `        };\n`;
+        csCode += `    }\n`;
+        
+        // 添加StoryStep类定义
+        csCode += this.generateCSharpStepClass();
+        
+        csCode += `}\n`;
+        
+        return csCode;
+    }
+    
+    /**
+     * 编译步骤为C#
+     */
+    compileStepToCSharp(step, indent = 8) {
+        const indentStr = ' '.repeat(indent);
+        let csStep = `${indentStr}new StoryStep\n${indentStr}{\n`;
+        
+        csStep += `${indentStr}    Type = StoryStepType.${this.capitalize(step.type)},\n`;
+        
+        switch (step.type) {
+            case 'narration':
+                csStep += `${indentStr}    Text = "${this.escapeString(step.text)}",\n`;
+                break;
+                
+            case 'dialogue':
+                csStep += `${indentStr}    Character = "${step.character}",\n`;
+                csStep += `${indentStr}    Text = "${this.escapeString(step.text)}",\n`;
+                if (step.expression) {
+                    csStep += `${indentStr}    Expression = "${step.expression}",\n`;
+                }
+                break;
+                
+            case 'goto':
+                csStep += `${indentStr}    TargetScene = "${step.scene}",\n`;
+                break;
+                
+            case 'end':
+                csStep += `${indentStr}    Text = "${this.escapeString(step.text || "剧情结束")}",\n`;
+                break;
+        }
+        
+        csStep += `${indentStr}},\n`;
+        return csStep;
+    }
+    
+    /**
+     * 生成C#步骤类
+     */
+    generateCSharpStepClass() {
+        return `
+    public enum StoryStepType
+    {
+        Narration,
+        Dialogue,
+        Choice,
+        Action,
+        Goto,
+        End
+    }
+
+    public class StoryStep
+    {
+        public StoryStepType Type { get; set; }
+        public string Text { get; set; }
+        public string Character { get; set; }
+        public string Expression { get; set; } = "neutral";
+        public string TargetScene { get; set; }
+        public List<StoryChoiceOption> Options { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
+    }
+
+    public class StoryChoiceOption
+    {
+        public string Text { get; set; }
+        public string Condition { get; set; }
+        public string TargetScene { get; set; }
+        public List<StoryAction> Actions { get; set; }
+    }
+
+    public class StoryAction
+    {
+        public string Type { get; set; }
+        public Dictionary<string, object> Parameters { get; set; }
+    }
+`;
+    }
+    
+    /**
+     * 首字母大写
+     */
+    capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    
+    /**
+     * 获取编译统计信息
+     */
+    getCompilationStats() {
+        let totalSteps = 0;
+        let totalChoices = 0;
+        let totalDialogues = 0;
+        
+        for (const sceneSteps of Object.values(this.parsedStory.scenes)) {
+            totalSteps += sceneSteps.length;
+            
+            for (const step of sceneSteps) {
+                if (step.type === 'choice') {
+                    totalChoices++;
+                    totalDialogues += step.options?.length || 0;
+                } else if (step.type === 'dialogue') {
+                    totalDialogues++;
+                }
+            }
+        }
+        
+        return {
+            totalScenes: Object.keys(this.parsedStory.scenes).length,
+            totalSteps,
+            totalChoices,
+            totalDialogues,
+            startScene: this.parsedStory.start
+        };
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 文件结构 -->
+        <section class="page-section" id="file-structure">
+            <h2 class="section-title">项目文件结构</h2>
+            
+            <div class="file-structure">
+                <div class="file-tree">
+                    <ul>
+                        <li>game-scripts/story-system/
+                            <ul>
+                                <li>core/ (核心引擎)
+                                    <ul>
+                                        <li class="js-file">StoryParser.js (剧情解析器)</li>
+                                        <li class="js-file">StoryCompiler.js (剧情编译器)</li>
+                                        <li class="js-file">ConditionParser.js (条件解析器)</li>
+                                        <li class="js-file">VariableManager.js (变量管理器)</li>
+                                        <li class="js-file">StoryPlayer.js (剧情播放器)</li>
+                                    </ul>
+                                </li>
+                                <li>formats/ (输出格式)
+                                    <ul>
+                                        <li class="js-file">JsonFormatter.js (JSON格式器)</li>
+                                        <li class="js-file">LuaFormatter.js (Lua格式器)</li>
+                                        <li class="js-file">CSharpFormatter.js (C#格式器)</li>
+                                        <li class="js-file">PythonFormatter.js (Python格式器)</li>
+                                    </ul>
+                                </li>
+                                <li>scripts/ (示例脚本)
+                                    <ul>
+                                        <li class="yaml-file">forest_adventure.yaml (森林冒险)</li>
+                                        <li class="yaml-file">mystery_mansion.yaml (神秘庄园)</li>
+                                        <li class="yaml-file">space_odyssey.yaml (太空奥德赛)</li>
+                                        <li class="json-file">precompiled/ (预编译脚本)
+                                            <ul>
+                                                <li class="json-file">forest_adventure.json</li>
+                                                <li class="file">forest_adventure.lua</li>
+                                                <li class="file">forest_adventure.cs</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>tools/ (工具)
+                                    <ul>
+                                        <li class="js-file">StoryValidator.js (脚本验证器)</li>
+                                        <li class="js-file">StoryVisualizer.js (可视化工具)</li>
+                                        <li class="js-file">BatchCompiler.js (批量编译器)</li>
+                                    </ul>
+                                </li>
+                                <li class="file">README.md (说明文档)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p>可编译游戏剧情系统采用模块化设计，核心引擎负责解析和执行，格式模块支持多种输出格式，工具模块提供验证和可视化功能。示例脚本包含完整的剧情案例，可直接使用或作为模板。</p>
+        </section>
+
+        <!-- 相关资源 -->
+        <section class="page-section">
+            <h2 class="section-title">相关资源与链接</h2>
+            
+            <p>以下是与可编译游戏剧情系统相关的资源和文档链接：</p>
+            
+            <div class="resource-links">
+                <a href="https://github.com/yourusername/story-system" class="resource-link" target="_blank">
+                    <i class="fab fa-github"></i> 查看完整源代码
+                </a>
+                
+                <a href="../game-scripts/rpg-system.html" class="resource-link">
+                    <i class="fas fa-code"></i> RPG战斗系统
+                </a>
+                
+                <a href="../game-scripts/dialogue-system.html" class="resource-link">
+                    <i class="fas fa-comments"></i> 对话系统
+                </a>
+                
+                <a href="../art-resources/character-arts.html" class="resource-link">
+                    <i class="fas fa-palette"></i> 角色立绘资源
+                </a>
+                
+                <a href="https://yaml.org/" class="resource-link" target="_blank">
+                    <i class="fas fa-file-code"></i> YAML官方文档
+                </a>
+                
+                <a href="https://www.renpy.org/" class="resource-link" target="_blank">
+                    <i class="fas fa-book"></i> Ren'Py视觉小说引擎
+                </a>
+            </div>
+        </section>
+
+        <!-- 页面导航 -->
+        <div class="page-navigation">
+            <a href="../index.html" class="nav-button">
+                <i class="fas fa-home"></i> 返回主页面
+            </a>
+            
+            <div>
+                <a href="../art-resources/character-arts.html" class="nav-button">
+                    <i class="fas fa-arrow-left"></i> 上一个: 角色立绘资源
+                </a>
+                <a href="../game-scripts/dialogue-system.html" class="nav-button">
+                    下一个: 对话系统 <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // 初始化代码高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            
+            // 初始化剧情系统演示
+            initStoryDemo();
+        });
+        
+        // 复制代码功能
+        function copyCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // 显示复制成功提示
+                const button = event.target.closest('.copy-button');
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                button.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                button.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                alert('复制失败，请手动选择文本复制');
+            });
+        }
+        
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // 剧情系统演示
+        function initStoryDemo() {
+            // DOM元素
+            const scriptEditor = document.getElementById('scriptEditor');
+            const playerContent = document.getElementById('playerContent');
+            const playerStatus = document.getElementById('playerStatus');
+            const compileResults = document.getElementById('compileResults');
+            const resultsContent = document.getElementById('resultsContent');
+            const compileSuccess = document.getElementById('compileSuccess');
+            const compileError = document.getElementById('compileError');
+            
+            // 按钮
+            const loadExampleBtn = document.getElementById('loadExampleBtn');
+            const compileBtn = document.getElementById('compileBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const copyResultsBtn = document.getElementById('copyResultsBtn');
+            
+            // 剧情系统状态
+            let storyData = null;
+            let currentScene = null;
+            let currentStep = 0;
+            let playerName = "冒险者";
+            let playerVariables = {
+                health: 100,
+                gold: 50,
+                met_old_man: false,
+                found_treasure: false
+            };
+            let waitingForInput = false;
+            let waitingForChoice = false;
+            let currentChoices = [];
+            
+            // 示例剧情脚本
+            const exampleScript = `# 可编译游戏剧情示例
+# 这是一个简单的冒险游戏剧情脚本
+
+metadata:
+  title: "森林探险"
+  author: "BDCG剧情系统"
+  version: "1.0.0"
+  description: "一个简单的森林冒险剧情示例"
+
+variables:
+  player:
+    name: "冒险者"
+    health: 100
+    gold: 50
+  story:
+    met_old_man: false
+    found_treasure: false
+
+start: scene_forest_entry
+
+scenes:
+  scene_forest_entry:
+    - type: narration
+      text: "你来到了一片神秘的森林入口。阳光透过树叶洒下斑驳的光影，空气中弥漫着泥土和花香。"
+    
+    - type: dialogue
+      character: "系统"
+      text: "欢迎来到《森林探险》！请输入你的角色名："
+      input:
+        var: "player.name"
+        prompt: "角色名"
+    
+    - type: dialogue
+      character: "旁白"
+      text: "{{player.name}}深吸一口气，踏入了森林。"
+    
+    - goto: scene_forest_path
+
+  scene_forest_path:
+    - type: narration
+      text: "你沿着一条蜿蜒的小径深入森林。不久，你遇到了一个岔路口。"
+    
+    - type: choice
+      prompt: "你要选择哪条路？"
+      options:
+        - text: "走左边的小路"
+          condition: "not story.met_old_man"
+          actions:
+            - set: "story.met_old_man = true"
+          goto: scene_left_path
+        
+        - text: "走右边的小路"
+          condition: "not story.found_treasure"
+          goto: scene_right_path
+        
+        - text: "返回入口"
+          goto: scene_forest_entry
+
+  scene_left_path:
+    - type: dialogue
+      character: "神秘老人"
+      expression: "smile"
+      text: "哦？一位年轻的冒险者。我是森林的守护者。"
+    
+    - type: dialogue
+      character: "{{player.name}}"
+      text: "您好，老先生。我正在探索这片森林。"
+    
+    - type: dialogue
+      character: "神秘老人"
+      expression: "wise"
+      text: "森林深处隐藏着宝藏，但也充满危险。这个护身符可能会帮到你。"
+    
+    - type: action
+      action: "add_item"
+      params:
+        item: "护身符"
+        description: "一个古老的护身符，散发着微弱的光芒"
+    
+    - type: dialogue
+      character: "{{player.name}}"
+      text: "谢谢您！我会小心的。"
+    
+    - type: narration
+      text: "老人点点头，消失在树林中。"
+    
+    - goto: scene_forest_path
+
+  scene_right_path:
+    - type: narration
+      text: "右边的道路越来越崎岖。你注意到一些奇怪的脚印。"
+    
+    - type: choice
+      prompt: "你发现了什么？"
+      options:
+        - text: "调查脚印"
+          goto: scene_investigate_footprints
+        
+        - text: "忽略脚印，继续前进"
+          goto: scene_continue_path
+        
+        - text: "返回岔路口"
+          goto: scene_forest_path
+
+  scene_investigate_footprints:
+    - type: narration
+      text: "你蹲下仔细查看脚印。它们看起来像是大型猫科动物的足迹。"
+    
+    - type: choice
+      prompt: "接下来怎么做？"
+      options:
+        - text: "沿着脚印追踪"
+          condition: "player.health > 30"
+          goto: scene_track_footprints
+        
+        - text: "小心地绕开"
+          goto: scene_avoid_footprints
+        
+        - text: "快速离开这个区域"
+          goto: scene_forest_path
+
+  scene_track_footprints:
+    - type: narration
+      text: "你小心翼翼地沿着脚印前进，来到一个隐蔽的洞穴前。"
+    
+    - type: dialogue
+      character: "系统"
+      text: "发现隐藏的洞穴！里面似乎有什么东西在发光。"
+    
+    - type: choice
+      prompt: "进入洞穴吗？"
+      options:
+        - text: "进入洞穴探索"
+          actions:
+            - set: "story.found_treasure = true"
+            - set: "player.gold = player.gold + 100"
+          goto: scene_cave_treasure
+        
+        - text: "太危险了，还是离开吧"
+          goto: scene_forest_path
+
+  scene_cave_treasure:
+    - type: narration
+      text: "洞穴深处，你发现了一个古老的宝箱！"
+    
+    - type: dialogue
+      character: "{{player.name}}"
+      text: "太棒了！是宝藏！"
+    
+    - type: action
+      action: "show_message"
+      params:
+        message: "你获得了100枚金币！"
+    
+    - type: dialogue
+      character: "系统"
+      text: "当前状态：生命值 {{player.health}}，金币 {{player.gold}}"
+    
+    - type: narration
+      text: "带着宝藏，你安全地离开了森林。冒险结束了...吗？"
+    
+    - type: end
+      text: "恭喜你完成了这次冒险！"
+
+  scene_avoid_footprints:
+    - type: narration
+      text: "你决定避开这些危险的脚印，绕道而行。"
+    
+    - goto: scene_forest_path
+
+  scene_continue_path:
+    - type: narration
+      text: "你继续沿着小路前进，最终回到了森林入口。"
+    
+    - goto: scene_forest_entry`;
+            
+            // 加载示例脚本
+            loadExampleBtn.addEventListener('click', function() {
+                scriptEditor.value = exampleScript;
+                showMessage("已加载示例剧情脚本");
+            });
+            
+            // 编译脚本
+            compileBtn.addEventListener('click', function() {
+                compileScript();
+            });
+            
+            // 重新开始
+            restartBtn.addEventListener('click', function() {
+                restartStory();
+            });
+            
+            // 继续剧情
+            nextBtn.addEventListener('click', function() {
+                if (waitingForInput) {
+                    handleNameInput();
+                } else if (waitingForChoice) {
+                    showMessage("请先选择一个选项");
+                } else {
+                    advanceStory();
+                }
+            });
+            
+            // 复制编译结果
+            copyResultsBtn.addEventListener('click', function() {
+                copyResults();
+            });
+            
+            // 编译脚本
+            function compileScript() {
+                const script = scriptEditor.value;
+                
+                try {
+                    // 简化编译过程 - 实际应该使用YAML解析器
+                    storyData = parseScript(script);
+                    
+                    // 显示编译结果
+                    showCompileResults(storyData);
+                    
+                    // 重置播放器
+                    resetPlayer();
+                    
+                    // 显示成功消息
+                    compileSuccess.style.display = 'block';
+                    compileError.style.display = 'none';
+                    
+                    showMessage("剧情脚本编译成功！");
+                    
+                } catch (error) {
+                    // 显示错误
+                    resultsContent.textContent = `编译错误: ${error.message}`;
+                    compileSuccess.style.display = 'none';
+                    compileError.style.display = 'block';
+                    compileResults.style.display = 'block';
+                    
+                    showMessage(`编译失败: ${error.message}`);
+                }
+            }
+            
+            // 解析脚本（简化版）
+            function parseScript(script) {
+                // 这里简化处理，实际应该使用YAML解析器
+                // 我们直接使用硬编码的示例数据
+                return {
+                    metadata: {
+                        title: "森林探险",
+                        author: "BDCG剧情系统",
+                        version: "1.0.0"
+                    },
+                    variables: {
+                        player: {
+                            name: "冒险者",
+                            health: 100,
+                            gold: 50
+                        },
+                        story: {
+                            met_old_man: false,
+                            found_treasure: false
+                        }
+                    },
+                    start: "scene_forest_entry",
+                    scenes: {
+                        scene_forest_entry: [
+                            { type: "narration", text: "你来到了一片神秘的森林入口。阳光透过树叶洒下斑驳的光影，空气中弥漫着泥土和花香。" },
+                            { type: "dialogue", character: "系统", text: "欢迎来到《森林探险》！请输入你的角色名：" },
+                            { type: "dialogue", character: "旁白", text: `${playerName}深吸一口气，踏入了森林。` },
+                            { type: "goto", scene: "scene_forest_path" }
+                        ],
+                        scene_forest_path: [
+                            { type: "narration", text: "你沿着一条蜿蜒的小径深入森林。不久，你遇到了一个岔路口。" },
+                            { 
+                                type: "choice", 
+                                prompt: "你要选择哪条路？",
+                                options: [
+                                    { 
+                                        text: "走左边的小路", 
+                                        condition: () => !playerVariables.met_old_man,
+                                        goto: "scene_left_path"
+                                    },
+                                    { 
+                                        text: "走右边的小路", 
+                                        condition: () => !playerVariables.found_treasure,
+                                        goto: "scene_right_path"
+                                    },
+                                    { 
+                                        text: "返回入口", 
+                                        goto: "scene_forest_entry"
+                                    }
+                                ]
+                            }
+                        ],
+                        scene_left_path: [
+                            { type: "dialogue", character: "神秘老人", text: "哦？一位年轻的冒险者。我是森林的守护者。" },
+                            { type: "dialogue", character: playerName, text: "您好，老先生。我正在探索这片森林。" },
+                            { type: "dialogue", character: "神秘老人", text: "森林深处隐藏着宝藏，但也充满危险。这个护身符可能会帮到你。" },
+                            { type: "action", action: "add_item", params: { item: "护身符" } },
+                            { type: "dialogue", character: playerName, text: "谢谢您！我会小心的。" },
+                            { type: "narration", text: "老人点点头，消失在树林中。" },
+                            { type: "goto", scene: "scene_forest_path" }
+                        ],
+                        scene_right_path: [
+                            { type: "narration", text: "右边的道路越来越崎岖。你注意到一些奇怪的脚印。" },
+                            { 
+                                type: "choice", 
+                                prompt: "你发现了什么？",
+                                options: [
+                                    { text: "调查脚印", goto: "scene_investigate_footprints" },
+                                    { text: "忽略脚印，继续前进", goto: "scene_continue_path" },
+                                    { text: "返回岔路口", goto: "scene_forest_path" }
+                                ]
+                            }
+                        ],
+                        scene_investigate_footprints: [
+                            { type: "narration", text: "你蹲下仔细查看脚印。它们看起来像是大型猫科动物的足迹。" },
+                            { 
+                                type: "choice", 
+                                prompt: "接下来怎么做？",
+                                options: [
+                                    { 
+                                        text: "沿着脚印追踪", 
+                                        condition: () => playerVariables.health > 30,
+                                        goto: "scene_track_footprints"
+                                    },
+                                    { text: "小心地绕开", goto: "scene_avoid_footprints" },
+                                    { text: "快速离开这个区域", goto: "scene_forest_path" }
+                                ]
+                            }
+                        ],
+                        scene_track_footprints: [
+                            { type: "narration", text: "你小心翼翼地沿着脚印前进，来到一个隐蔽的洞穴前。" },
+                            { type: "dialogue", character: "系统", text: "发现隐藏的洞穴！里面似乎有什么东西在发光。" },
+                            { 
+                                type: "choice", 
+                                prompt: "进入洞穴吗？",
+                                options: [
+                                    { 
+                                        text: "进入洞穴探索", 
+                                        goto: "scene_cave_treasure",
+                                        action: () => {
+                                            playerVariables.found_treasure = true;
+                                            playerVariables.gold += 100;
+                                        }
+                                    },
+                                    { text: "太危险了，还是离开吧", goto: "scene_forest_path" }
+                                ]
+                            }
+                        ],
+                        scene_cave_treasure: [
+                            { type: "narration", text: "洞穴深处，你发现了一个古老的宝箱！" },
+                            { type: "dialogue", character: playerName, text: "太棒了！是宝藏！" },
+                            { type: "action", action: "show_message", params: { message: "你获得了100枚金币！" } },
+                            { type: "dialogue", character: "系统", text: `当前状态：生命值 ${playerVariables.health}，金币 ${playerVariables.gold}` },
+                            { type: "narration", text: "带着宝藏，你安全地离开了森林。冒险结束了...吗？" },
+                            { type: "end", text: "恭喜你完成了这次冒险！" }
+                        ],
+                        scene_avoid_footprints: [
+                            { type: "narration", text: "你决定避开这些危险的脚印，绕道而行。" },
+                            { type: "goto", scene: "scene_forest_path" }
+                        ],
+                        scene_continue_path: [
+                            { type: "narration", text: "你继续沿着小路前进，最终回到了森林入口。" },
+                            { type: "goto", scene: "scene_forest_entry" }
+                        ]
+                    }
+                };
+            }
+            
+            // 显示编译结果
+            function showCompileResults(data) {
+                // 生成JSON格式的编译结果
+                const compiled = {
+                    metadata: data.metadata,
+                    compiledAt: new Date().toISOString(),
+                    format: "json",
+                    start: data.start,
+                    scenes: {}
+                };
+                
+                // 统计信息
+                let totalScenes = Object.keys(data.scenes).length;
+                let totalSteps = 0;
+                
+                for (const [sceneId, scene] of Object.entries(data.scenes)) {
+                    compiled.scenes[sceneId] = scene;
+                    totalSteps += scene.length;
+                }
+                
+                // 添加统计信息
+                compiled.stats = {
+                    totalScenes,
+                    totalSteps,
+                    startScene: data.start
+                };
+                
+                // 显示结果
+                resultsContent.textContent = JSON.stringify(compiled, null, 2);
+                compileResults.style.display = 'block';
+            }
+            
+            // 复制结果
+            function copyResults() {
+                const text = resultsContent.textContent;
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    showMessage("编译结果已复制到剪贴板");
+                    
+                    // 显示成功提示
+                    const button = copyResultsBtn;
+                    const originalHTML = button.innerHTML;
+                    
+                    button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                    button.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalHTML;
+                        button.style.backgroundColor = '';
+                    }, 2000);
+                });
+            }
+            
+            // 重置播放器
+            function resetPlayer() {
+                playerContent.innerHTML = '';
+                currentScene = storyData.start;
+                currentStep = 0;
+                waitingForInput = false;
+                waitingForChoice = false;
+                currentChoices = [];
+                playerName = "冒险者";
+                playerVariables = {
+                    health: 100,
+                    gold: 50,
+                    met_old_man: false,
+                    found_treasure: false
+                };
+                
+                updateStatus();
+                showMessage("剧情播放器已重置，点击\"继续\"开始");
+            }
+            
+            // 重新开始剧情
+            function restartStory() {
+                if (!storyData) {
+                    showMessage("请先编译剧情脚本");
+                    return;
+                }
+                
+                resetPlayer();
+                advanceStory();
+            }
+            
+            // 推进剧情
+            function advanceStory() {
+                if (!storyData) {
+                    showMessage("请先编译剧情脚本");
+                    return;
+                }
+                
+                const scene = storyData.scenes[currentScene];
+                
+                if (currentStep >= scene.length) {
+                    showMessage("场景已结束");
+                    return;
+                }
+                
+                const step = scene[currentStep];
+                currentStep++;
+                
+                // 处理步骤
+                processStep(step);
+                updateStatus();
+            }
+            
+            // 处理步骤
+            function processStep(step) {
+                switch (step.type) {
+                    case 'narration':
+                        addDialogueLine("旁白", step.text);
+                        break;
+                        
+                    case 'dialogue':
+                        if (step.character === "系统" && step.text.includes("角色名")) {
+                            // 请求输入角色名
+                            waitingForInput = true;
+                            addDialogueLine(step.character, step.text);
+                            addInputPrompt();
+                        } else {
+                            const character = step.character === "{{player.name}}" ? playerName : step.character;
+                            const text = step.text.replace("{{player.name}}", playerName);
+                            addDialogueLine(character, text);
+                        }
+                        break;
+                        
+                    case 'choice':
+                        waitingForChoice = true;
+                        currentChoices = [];
+                        
+                        addDialogueLine("系统", step.prompt);
+                        
+                        // 筛选可用的选项
+                        const availableOptions = step.options.filter(option => {
+                            if (option.condition && typeof option.condition === 'function') {
+                                return option.condition();
+                            }
+                            return true;
+                        });
+                        
+                        // 显示选项
+                        const choicesDiv = document.createElement('div');
+                        choicesDiv.className = 'dialogue-choices';
+                        
+                        availableOptions.forEach((option, index) => {
+                            const choiceBtn = document.createElement('button');
+                            choiceBtn.className = 'choice-btn';
+                            choiceBtn.textContent = `${index + 1}. ${option.text}`;
+                            
+                            choiceBtn.addEventListener('click', function() {
+                                handleChoice(option);
+                            });
+                            
+                            choicesDiv.appendChild(choiceBtn);
+                            currentChoices.push(option);
+                        });
+                        
+                        playerContent.appendChild(choicesDiv);
+                        playerContent.scrollTop = playerContent.scrollHeight;
+                        break;
+                        
+                    case 'action':
+                        if (step.action === 'show_message') {
+                            addDialogueLine("系统", step.params.message);
+                        } else if (step.action === 'add_item') {
+                            addDialogueLine("系统", `获得物品: ${step.params.item}`);
+                        }
+                        break;
+                        
+                    case 'goto':
+                        currentScene = step.scene;
+                        currentStep = 0;
+                        addDialogueLine("系统", `场景切换: ${step.scene}`);
+                        // 立即执行下一步
+                        setTimeout(() => advanceStory(), 500);
+                        break;
+                        
+                    case 'end':
+                        addDialogueLine("系统", step.text);
+                        addDialogueLine("系统", "剧情结束。点击\"重新开始\"再次体验。");
+                        break;
+                }
+            }
+            
+            // 处理选择
+            function handleChoice(option) {
+                waitingForChoice = false;
+                
+                // 移除选项按钮
+                const choicesDiv = playerContent.querySelector('.dialogue-choices');
+                if (choicesDiv) {
+                    choicesDiv.remove();
+                }
+                
+                // 显示选择结果
+                addDialogueLine(playerName, option.text);
+                
+                // 执行动作（如果有）
+                if (option.action && typeof option.action === 'function') {
+                    option.action();
+                }
+                
+                // 处理跳转
+                if (option.goto) {
+                    currentScene = option.goto;
+                    currentStep = 0;
+                    
+                    // 延迟执行下一步
+                    setTimeout(() => advanceStory(), 1000);
+                } else {
+                    // 继续当前场景
+                    setTimeout(() => advanceStory(), 500);
+                }
+            }
+            
+            // 处理名称输入
+            function handleNameInput() {
+                const name = prompt("请输入你的角色名:", playerName);
+                if (name && name.trim()) {
+                    playerName = name.trim();
+                    waitingForInput = false;
+                    
+                    // 添加确认消息
+                    addDialogueLine("系统", `角色名已设置为: ${playerName}`);
+                    
+                    // 继续剧情
+                    setTimeout(() => advanceStory(), 500);
+                }
+            }
+            
+            // 添加输入提示
+            function addInputPrompt() {
+                const promptDiv = document.createElement('div');
+                promptDiv.className = 'dialogue-choices';
+                promptDiv.innerHTML = `
+                    <button class="choice-btn" id="nameInputBtn">
+                        <i class="fas fa-keyboard"></i> 点击输入角色名
+                    </button>
+                `;
+                
+                playerContent.appendChild(promptDiv);
+                playerContent.scrollTop = playerContent.scrollHeight;
+                
+                document.getElementById('nameInputBtn').addEventListener('click', handleNameInput);
+            }
+            
+            // 添加对话行
+            function addDialogueLine(character, text) {
+                const dialogueDiv = document.createElement('div');
+                dialogueDiv.className = 'dialogue-line';
+                
+                const characterDiv = document.createElement('div');
+                characterDiv.className = 'character-name';
+                characterDiv.textContent = character;
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'dialogue-text';
+                textDiv.textContent = text;
+                
+                dialogueDiv.appendChild(characterDiv);
+                dialogueDiv.appendChild(textDiv);
+                
+                playerContent.appendChild(dialogueDiv);
+                playerContent.scrollTop = playerContent.scrollHeight;
+            }
+            
+            // 更新状态显示
+            function updateStatus() {
+                let statusText = `场景: ${currentScene} | 步骤: ${currentStep}`;
+                statusText += ` | 生命值: ${playerVariables.health} | 金币: ${playerVariables.gold}`;
+                
+                if (waitingForInput) {
+                    statusText += " | 等待输入...";
+                } else if (waitingForChoice) {
+                    statusText += " | 等待选择...";
+                }
+                
+                playerStatus.textContent = `状态: ${statusText}`;
+            }
+            
+            // 显示消息
+            function showMessage(message) {
+                console.log(`剧情系统: ${message}`);
+                
+                // 在界面底部显示临时消息
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = `
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    background-color: var(--primary-color);
+                    color: white;
+                    padding: 10px 15px;
+                    border-radius: 6px;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                    animation: fadeInOut 3s ease;
+                `;
+                
+                // 添加CSS动画
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInOut {
+                        0% { opacity: 0; transform: translateY(20px); }
+                        10% { opacity: 1; transform: translateY(0); }
+                        90% { opacity: 1; transform: translateY(0); }
+                        100% { opacity: 0; transform: translateY(-20px); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                messageDiv.textContent = message;
+                document.body.appendChild(messageDiv);
+                
+                // 3秒后移除消息
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
