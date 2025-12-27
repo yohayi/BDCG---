@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live2D角色模型 - BDCG模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <style>
+        :root {
+            --primary-color: #3a0ca3;
+            --secondary-color: #4361ee;
+            --accent-color: #f72585;
+            --live2d-color: #ff6b6b;
+            --animation-color: #7209b7;
+            --expression-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --code-bg: #282c34;
+            --card-bg: #ffffff;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部导航 */
+        .subpage-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .subpage-title {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .subpage-title h1 {
+            font-size: 2rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .subpage-title p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-actions a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: var(--transition);
+        }
+
+        .header-actions a:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主要内容 */
+        .main-content {
+            padding: 3rem 0;
+        }
+
+        .page-section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            display: inline-block;
+        }
+
+        .section-subtitle {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem;
+            font-size: 1.3rem;
+        }
+
+        /* Live2D展示区域 */
+        .live2d-demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        @media (max-width: 992px) {
+            .live2d-demo-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .live2d-canvas-container {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .live2d-canvas {
+            width: 100%;
+            height: 400px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .live2d-placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .live2d-controls {
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+        .control-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .control-label {
+            display: block;
+            color: white;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .control-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--live2d-color);
+            cursor: pointer;
+            border: 2px solid white;
+        }
+
+        .expression-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .expression-btn {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .expression-btn:hover {
+            background-color: rgba(76, 201, 240, 0.4);
+            transform: translateY(-3px);
+        }
+
+        .expression-btn.active {
+            background-color: var(--expression-color);
+        }
+
+        /* 项目概览 */
+        .project-overview {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .project-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .project-description p {
+            margin-bottom: 1.2rem;
+            color: var(--dark-color);
+        }
+
+        .project-meta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .meta-item:last-child {
+            border-bottom: none;
+        }
+
+        .meta-label {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .meta-value {
+            color: var(--gray-color);
+        }
+
+        /* 功能展示网格 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: var(--transition);
+            border-left: 4px solid var(--live2d-color);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--live2d-color);
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.8rem;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            color: var(--gray-color);
+            font-size: 0.95rem;
+            margin-bottom: 1.2rem;
+        }
+
+        /* 代码演示 */
+        .code-demo {
+            background-color: var(--code-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 0.8rem 1.2rem;
+            color: #abb2bf;
+        }
+
+        .code-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #abb2bf;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1.5rem;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+
+        .hljs {
+            background: transparent;
+        }
+
+        /* 文件结构 */
+        .file-structure {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .file-tree {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .file-tree ul {
+            list-style-type: none;
+            padding-left: 1.5rem;
+        }
+
+        .file-tree li {
+            position: relative;
+            padding: 0.2rem 0;
+        }
+
+        .file-tree li:before {
+            content: "📁";
+            position: absolute;
+            left: -1.2rem;
+        }
+
+        .file-tree .file:before {
+            content: "📄";
+        }
+
+        .file-tree .json-file:before {
+            content: "📋";
+        }
+
+        .file-tree .model-file:before {
+            content: "🎭";
+        }
+
+        .file-tree .texture-file:before {
+            content: "🖼️";
+        }
+
+        /* 模型展示 */
+        .model-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .model-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .model-image {
+            height: 180px;
+            background-color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .model-info {
+            padding: 1.2rem;
+        }
+
+        .model-info h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .model-info p {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .model-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .model-tag {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--secondary-color);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* 相关资源 */
+        .resource-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .resource-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.7rem 1.2rem;
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .resource-link:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+            transform: translateY(-3px);
+        }
+
+        /* 页面导航 */
+        .page-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .nav-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .nav-button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .header-actions {
+                justify-content: center;
+            }
+            
+            .subpage-title h1 {
+                font-size: 1.7rem;
+            }
+            
+            .feature-grid, .model-showcase {
+                grid-template-columns: 1fr;
+            }
+            
+            .page-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="subpage-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../index.html" class="back-button">
+                    <i class="fas fa-arrow-left"></i> 返回主页
+                </a>
+                
+                <div class="subpage-title">
+                    <h1>Live2D角色模型</h1>
+                    <p>动态2D角色模型编辑与实现</p>
+                </div>
+                
+                <div class="header-actions">
+                    <a href="#live2d-demo"><i class="fas fa-cube"></i> 交互演示</a>
+                    <a href="#code-demo"><i class="fas fa-code"></i> 代码</a>
+                    <a href="#model-showcase"><i class="fas fa-images"></i> 模型库</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content container">
+        <!-- 项目概览 -->
+        <section class="page-section">
+            <h2 class="section-title">项目概览</h2>
+            
+            <div class="project-overview">
+                <div class="project-description">
+                    <p>Live2D是一种2D图像渲染技术，能够让静态的2D图像以动态、立体的形式呈现。本系统提供了一个完整的Live2D角色模型编辑器和集成环境，支持模型的导入、编辑、动画制作和实时预览。</p>
+                    
+                    <p>系统包含完整的参数控制系统，可以实时调整角色的表情、姿势和动作。支持物理模拟（头发、服装摆动）、呼吸动画、视线跟踪和触摸响应等高级功能。所有模型数据采用JSON格式存储，便于编辑和扩展。</p>
+                    
+                    <p>本页面将展示Live2D模型的核心功能、参数编辑系统、动画制作流程以及模型资源库。您可以通过交互演示直接体验Live2D模型的动态效果。</p>
+                </div>
+                
+                <div class="project-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">技术栈:</span>
+                        <span class="meta-value">JavaScript + Live2D SDK</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">文件数量:</span>
+                        <span class="meta-value">18个</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">最后更新:</span>
+                        <span class="meta-value">2023-09-22</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">模型格式:</span>
+                        <span class="meta-value">.moc, .moc3</span>
+                    </div>
+                    <div class="meta-label">支持功能:</span>
+                        <span class="meta-value">表情/动作/物理</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">渲染方式:</span>
+                        <span class="meta-value">WebGL + Canvas</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live2D交互演示 -->
+        <section class="page-section" id="live2d-demo">
+            <h2 class="section-title">Live2D交互演示</h2>
+            
+            <div class="live2d-demo-container">
+                <div class="live2d-canvas-container">
+                    <div class="live2d-canvas" id="live2dCanvas">
+                        <div class="live2d-placeholder">
+                            <i class="fas fa-user" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                            <h3>Live2D模型演示</h3>
+                            <p>这是一个模拟的Live2D展示区域</p>
+                            <p>使用下方的控制面板调整模型参数</p>
+                        </div>
+                    </div>
+                    
+                    <div class="live2d-controls">
+                        <div class="control-group">
+                            <label class="control-label">表情控制:</label>
+                            <div class="expression-buttons">
+                                <button class="expression-btn active" data-expression="neutral">中性</button>
+                                <button class="expression-btn" data-expression="happy">开心</button>
+                                <button class="expression-btn" data-expression="sad">悲伤</button>
+                                <button class="expression-btn" data-expression="angry">生气</button>
+                                <button class="expression-btn" data-expression="surprised">惊讶</button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">眼睛开合: <span id="eyeValue">0.5</span></label>
+                            <input type="range" class="control-slider" id="eyeSlider" min="0" max="1" step="0.01" value="0.5">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">嘴巴开合: <span id="mouthValue">0.3</span></label>
+                            <input type="range" class="control-slider" id="mouthSlider" min="0" max="1" step="0.01" value="0.3">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">头部角度X: <span id="headXValue">0</span></label>
+                            <input type="range" class="control-slider" id="headXSlider" min="-30" max="30" step="1" value="0">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">头部角度Y: <span id="headYValue">0</span></label>
+                            <input type="range" class="control-slider" id="headYSlider" min="-30" max="30" step="1" value="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="section-subtitle">Live2D技术特点</h3>
+                    <p>Live2D Cubism是一种2D渲染技术，它通过对2D图像进行网格划分和参数化变形，实现了2D图像的动态效果，同时保持了原始艺术风格。</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-smile"></i>
+                            </div>
+                            <h4>表情系统</h4>
+                            <p>通过参数混合实现丰富的表情变化，支持平滑过渡和组合表情。</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-running"></i>
+                            </div>
+                            <h4>动作控制</h4>
+                            <p>支持骨骼动画和网格变形，实现自然的角色动作和姿势变化。</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-wind"></i>
+                            </div>
+                            <h4>物理模拟</h4>
+                            <p>模拟头发、服装的物理摆动，增强角色的动态真实感。</p>
+                        </div>
+                        
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <h4>视线跟踪</h4>
+                            <p>根据鼠标位置或预设目标自动调整角色视线方向。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 代码演示 -->
+        <section class="page-section" id="code-demo">
+            <h2 class="section-title">核心代码实现</h2>
+            
+            <h3 class="section-subtitle">Live2D模型加载器 (Live2DLoader.js)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>live2d-editor/core/Live2DLoader.js</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code1')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="javascript" id="code1">/**
+ * Live2D角色模型 - 模型加载器
+ * 负责加载Live2D模型文件、纹理和动作数据
+ */
+class Live2DLoader {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+        
+        if (!this.gl) {
+            console.error('WebGL not supported');
+            return;
+        }
+        
+        // Live2D模型实例
+        this.model = null;
+        
+        // 模型数据
+        this.modelData = {
+            moc: null,          // 模型文件
+            textures: [],       // 纹理图片
+            physics: null,      // 物理文件
+            poses: null,        // 姿势文件
+            expressions: [],    // 表情文件
+            motions: {}         // 动作文件
+        };
+        
+        // 模型参数
+        this.parameters = {};
+        this.parts = {};
+        
+        // 动画状态
+        this.animationState = {
+            currentExpression: 'neutral',
+            isTalking: false,
+            isBlinking: false,
+            blinkTimer: 0,
+            lookAtTarget: { x: 0, y: 0 }
+        };
+        
+        // 物理模拟器
+        this.physicsSimulator = null;
+        
+        // 初始化WebGL
+        this.initWebGL();
+    }
+    
+    /**
+     * 初始化WebGL环境
+     */
+    initWebGL() {
+        const gl = this.gl;
+        
+        // 设置视口
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        
+        // 设置清除颜色
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        
+        // 启用混合（透明纹理）
+        gl.enable(gl.BLEND);
+        gl.blendFuncSeparate(
+            gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA,
+            gl.ONE, gl.ONE_MINUS_SRC_ALPHA
+        );
+        
+        // 启用深度测试
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
+        
+        console.log('WebGL initialized successfully');
+    }
+    
+    /**
+     * 加载Live2D模型
+     */
+    async loadModel(modelPath) {
+        try {
+            console.log(`Loading Live2D model from: ${modelPath}`);
+            
+            // 1. 加载模型定义文件
+            const modelJson = await this.fetchJson(`${modelPath}/model.json`);
+            
+            // 2. 加载模型文件(.moc)
+            const mocBuffer = await this.fetchArrayBuffer(`${modelPath}/${modelJson.model}`);
+            this.modelData.moc = mocBuffer;
+            
+            // 3. 加载纹理
+            const texturePromises = modelJson.textures.map(textureFile => 
+                this.loadTexture(`${modelPath}/${textureFile}`)
+            );
+            this.modelData.textures = await Promise.all(texturePromises);
+            
+            // 4. 加载物理文件(如果有)
+            if (modelJson.physics) {
+                this.modelData.physics = await this.fetchJson(
+                    `${modelPath}/${modelJson.physics}`
+                );
+                this.initPhysics();
+            }
+            
+            // 5. 加载姿势文件(如果有)
+            if (modelJson.pose) {
+                this.modelData.poses = await this.fetchJson(
+                    `${modelPath}/${modelJson.pose}`
+                );
+            }
+            
+            // 6. 加载表情文件(如果有)
+            if (modelJson.expressions) {
+                const expressionPromises = modelJson.expressions.map(expr => 
+                    this.fetchJson(`${modelPath}/${expr.file}`)
+                );
+                this.modelData.expressions = await Promise.all(expressionPromises);
+            }
+            
+            // 7. 加载动作文件(如果有)
+            if (modelJson.motions) {
+                for (const [group, motions] of Object.entries(modelJson.motions)) {
+                    this.modelData.motions[group] = [];
+                    for (const motion of motions) {
+                        const motionData = await this.fetchJson(
+                            `${modelPath}/${motion.file}`
+                        );
+                        this.modelData.motions[group].push(motionData);
+                    }
+                }
+            }
+            
+            // 8. 初始化模型
+            await this.initModel();
+            
+            console.log('Live2D model loaded successfully');
+            return true;
+            
+        } catch (error) {
+            console.error('Failed to load Live2D model:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * 初始化Live2D模型
+     */
+    async initModel() {
+        // 创建Live2D模型实例
+        this.model = new Live2DModel(this.gl, this.modelData.moc);
+        
+        // 设置纹理
+        this.model.setTextures(this.modelData.textures);
+        
+        // 提取模型参数和部件
+        this.extractParameters();
+        this.extractParts();
+        
+        // 设置初始参数值
+        this.resetParameters();
+        
+        // 开始渲染循环
+        this.startRendering();
+    }
+    
+    /**
+     * 提取模型参数
+     */
+    extractParameters() {
+        const parameterCount = this.model.getParameterCount();
+        this.parameters = {};
+        
+        for (let i = 0; i < parameterCount; i++) {
+            const paramInfo = this.model.getParameterInfo(i);
+            this.parameters[paramInfo.id] = {
+                index: i,
+                defaultValue: paramInfo.defaultValue,
+                min: paramInfo.min,
+                max: paramInfo.max,
+                value: paramInfo.defaultValue
+            };
+        }
+        
+        console.log(`Extracted ${Object.keys(this.parameters).length} parameters`);
+    }
+    
+    /**
+     * 提取模型部件
+     */
+    extractParts() {
+        const partCount = this.model.getPartCount();
+        this.parts = {};
+        
+        for (let i = 0; i < partCount; i++) {
+            const partInfo = this.model.getPartInfo(i);
+            this.parts[partInfo.id] = {
+                index: i,
+                opacity: 1.0
+            };
+        }
+        
+        console.log(`Extracted ${Object.keys(this.parts).length} parts`);
+    }
+    
+    /**
+     * 初始化物理模拟
+     */
+    initPhysics() {
+        if (!this.modelData.physics) return;
+        
+        this.physicsSimulator = new Live2DPhysics();
+        this.physicsSimulator.setup(this.modelData.physics);
+        
+        console.log('Physics simulation initialized');
+    }
+    
+    /**
+     * 重置所有参数为默认值
+     */
+    resetParameters() {
+        for (const paramId in this.parameters) {
+            this.parameters[paramId].value = this.parameters[paramId].defaultValue;
+            this.model.setParameterValueById(paramId, this.parameters[paramId].value);
+        }
+    }
+    
+    /**
+     * 设置参数值
+     */
+    setParameter(paramId, value) {
+        if (!this.parameters[paramId]) {
+            console.warn(`Parameter ${paramId} not found`);
+            return;
+        }
+        
+        // 限制值在范围内
+        const param = this.parameters[paramId];
+        value = Math.max(param.min, Math.min(param.max, value));
+        
+        // 更新参数值
+        param.value = value;
+        this.model.setParameterValueById(paramId, value);
+    }
+    
+    /**
+     * 获取参数值
+     */
+    getParameter(paramId) {
+        return this.parameters[paramId] ? this.parameters[paramId].value : null;
+    }
+    
+    /**
+     * 设置表情
+     */
+    setExpression(expressionId) {
+        if (!this.modelData.expressions) return;
+        
+        // 查找表情
+        const expression = this.modelData.expressions.find(
+            expr => expr.name === expressionId
+        );
+        
+        if (!expression) {
+            console.warn(`Expression ${expressionId} not found`);
+            return;
+        }
+        
+        // 应用表情参数
+        for (const param of expression.params) {
+            this.setParameter(param.id, param.value);
+        }
+        
+        this.animationState.currentExpression = expressionId;
+        console.log(`Expression set to: ${expressionId}`);
+    }
+    
+    /**
+     * 播放动作
+     */
+    playMotion(group, index = 0) {
+        if (!this.modelData.motions[group] || 
+            !this.modelData.motions[group][index]) {
+            console.warn(`Motion ${group}[${index}] not found`);
+            return;
+        }
+        
+        const motion = this.modelData.motions[group][index];
+        
+        // 这里简化处理，实际需要实现动作播放器
+        console.log(`Playing motion: ${group}[${index}]`);
+        
+        // 更新动画状态
+        this.animationState.isPlayingMotion = true;
+        this.animationState.currentMotion = { group, index };
+    }
+    
+    /**
+     * 开始渲染循环
+     */
+    startRendering() {
+        const render = () => {
+            this.update();
+            this.draw();
+            requestAnimationFrame(render);
+        };
+        
+        render();
+    }
+    
+    /**
+     * 更新模型状态
+     */
+    update() {
+        // 更新物理模拟
+        if (this.physicsSimulator) {
+            this.physicsSimulator.update(this.model, Date.now());
+        }
+        
+        // 更新眨眼动画
+        this.updateBlink();
+        
+        // 更新视线跟踪
+        this.updateLookAt();
+        
+        // 更新呼吸动画
+        this.updateBreathing();
+        
+        // 更新模型
+        this.model.update();
+    }
+    
+    /**
+     * 更新眨眼动画
+     */
+    updateBlink() {
+        if (!this.animationState.isBlinking) {
+            this.animationState.blinkTimer += 1/60; // 假设60fps
+            
+            // 每3-5秒眨眼一次
+            if (this.animationState.blinkTimer > 3 + Math.random() * 2) {
+                this.animationState.isBlinking = true;
+                this.animationState.blinkTimer = 0;
+            }
+        } else {
+            // 眨眼动画 (0.2秒完成)
+            const blinkDuration = 0.2;
+            const blinkProgress = this.animationState.blinkTimer / blinkDuration;
+            
+            if (blinkProgress < 0.5) {
+                // 闭眼
+                const eyeClose = blinkProgress * 2;
+                this.setParameter('ParamEyeLOpen', 1 - eyeClose);
+                this.setParameter('ParamEyeROpen', 1 - eyeClose);
+            } else if (blinkProgress < 1) {
+                // 睁眼
+                const eyeOpen = (blinkProgress - 0.5) * 2;
+                this.setParameter('ParamEyeLOpen', eyeOpen);
+                this.setParameter('ParamEyeROpen', eyeOpen);
+            } else {
+                // 眨眼完成
+                this.animationState.isBlinking = false;
+                this.setParameter('ParamEyeLOpen', 1);
+                this.setParameter('ParamEyeROpen', 1);
+            }
+            
+            this.animationState.blinkTimer += 1/60;
+        }
+    }
+    
+    /**
+     * 更新视线跟踪
+     */
+    updateLookAt() {
+        const target = this.animationState.lookAtTarget;
+        
+        // 计算视线方向
+        const lookX = Math.max(-1, Math.min(1, target.x / this.canvas.width * 2 - 1));
+        const lookY = Math.max(-1, Math.min(1, target.y / this.canvas.height * 2 - 1));
+        
+        // 应用视线参数 (假设模型有这些参数)
+        this.setParameter('ParamEyeBallX', lookX);
+        this.setParameter('ParamEyeBallY', lookY);
+        this.setParameter('ParamAngleX', lookX * 15); // 头部跟随
+        this.setParameter('ParamAngleY', lookY * 10);
+    }
+    
+    /**
+     * 更新呼吸动画
+     */
+    updateBreathing() {
+        const time = Date.now() / 1000;
+        const breath = Math.sin(time * 2 * Math.PI / 3) * 0.5 + 0.5; // 3秒呼吸周期
+        
+        // 应用呼吸参数
+        this.setParameter('ParamBreath', breath * 0.3);
+    }
+    
+    /**
+     * 设置视线目标
+     */
+    setLookAtTarget(x, y) {
+        this.animationState.lookAtTarget = { x, y };
+    }
+    
+    /**
+     * 绘制模型
+     */
+    draw() {
+        const gl = this.gl;
+        
+        // 清除画布
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        
+        // 绘制模型
+        this.model.draw();
+    }
+    
+    /**
+     * 工具函数：获取JSON文件
+     */
+    async fetchJson(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to fetch JSON: ${url}`);
+        return await response.json();
+    }
+    
+    /**
+     * 工具函数：获取ArrayBuffer
+     */
+    async fetchArrayBuffer(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to fetch ArrayBuffer: ${url}`);
+        return await response.arrayBuffer();
+    }
+    
+    /**
+     * 工具函数：加载纹理
+     */
+    loadTexture(url) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.crossOrigin = 'anonymous';
+            image.onload = () => {
+                const texture = this.gl.createTexture();
+                this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+                this.gl.texImage2D(
+                    this.gl.TEXTURE_2D, 0, this.gl.RGBA, 
+                    this.gl.RGBA, this.gl.UNSIGNED_BYTE, image
+                );
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+                resolve(texture);
+            };
+            image.onerror = reject;
+            image.src = url;
+        });
+    }
+}</code></pre>
+            </div>
+            
+            <h3 class="section-subtitle">Live2D模型配置文件示例 (model.json)</h3>
+            <div class="code-demo">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-file-code"></i>
+                        <span>live2d-editor/models/character/model.json</span>
+                    </div>
+                    <button class="copy-button" onclick="copyCode('code2')">
+                        <i class="far fa-copy"></i> 复制代码
+                    </button>
+                </div>
+                <pre><code class="json" id="code2">{
+  "version": "Sample 1.0.0",
+  "model": "character.moc",
+  "textures": [
+    "character.1024/texture_00.png",
+    "character.1024/texture_01.png",
+    "character.1024/texture_02.png"
+  ],
+  "physics": "character.physics.json",
+  "pose": "character.pose.json",
+  "expressions": [
+    {
+      "name": "neutral",
+      "file": "expressions/neutral.exp.json"
+    },
+    {
+      "name": "happy",
+      "file": "expressions/happy.exp.json"
+    },
+    {
+      "name": "sad",
+      "file": "expressions/sad.exp.json"
+    },
+    {
+      "name": "angry",
+      "file": "expressions/angry.exp.json"
+    },
+    {
+      "name": "surprised",
+      "file": "expressions/surprised.exp.json"
+    }
+  ],
+  "motions": {
+    "idle": [
+      {
+        "file": "motions/idle_01.mtn.json",
+        "sound": "sounds/idle_01.mp3"
+      },
+      {
+        "file": "motions/idle_02.mtn.json",
+        "sound": "sounds/idle_02.mp3"
+      }
+    ],
+    "tap_body": [
+      {
+        "file": "motions/tap_body_01.mtn.json",
+        "sound": "sounds/tap_body_01.mp3"
+      }
+    ],
+    "thanking": [
+      {
+        "file": "motions/thanking.mtn.json",
+        "sound": "sounds/thanking.mp3"
+      }
+    ]
+  },
+  "layout": {
+    "center_x": 0,
+    "center_y": -0.05,
+    "width": 2
+  },
+  "hit_areas": [
+    {
+      "name": "head",
+      "id": "D_REF.HEAD"
+    },
+    {
+      "name": "body",
+      "id": "D_REF.BODY"
+    },
+    {
+      "name": "arm",
+      "id": "D_REF.ARM"
+    }
+  ],
+  "metadata": {
+    "title": "Sample Character",
+    "author": "Live2D Sample",
+    "version": "1.0.0",
+    "description": "Sample Live2D character model for demonstration",
+    "created": "2023-09-01",
+    "modified": "2023-09-22"
+  }
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- 文件结构 -->
+        <section class="page-section" id="file-structure">
+            <h2 class="section-title">项目文件结构</h2>
+            
+            <div class="file-structure">
+                <div class="file-tree">
+                    <ul>
+                        <li>live2d-editor/
+                            <ul>
+                                <li>core/ (核心引擎)
+                                    <ul>
+                                        <li class="js-file">Live2DLoader.js</li>
+                                        <li class="js-file">Live2DRenderer.js</li>
+                                        <li class="js-file">Live2DPhysics.js</li>
+                                        <li class="js-file">Live2DAnimation.js</li>
+                                        <li class="js-file">ParameterController.js</li>
+                                        <li class="js-file">ExpressionManager.js</li>
+                                    </ul>
+                                </li>
+                                <li>models/ (模型文件)
+                                    <ul>
+                                        <li>character/ (示例角色)
+                                            <ul>
+                                                <li class="model-file">character.moc</li>
+                                                <li class="json-file">model.json</li>
+                                                <li class="json-file">character.physics.json</li>
+                                                <li class="json-file">character.pose.json</li>
+                                                <li class="texture-file">texture_00.png</li>
+                                                <li class="texture-file">texture_01.png</li>
+                                                <li class="texture-file">texture_02.png</li>
+                                                <li>expressions/ (表情文件)
+                                                    <ul>
+                                                        <li class="json-file">neutral.exp.json</li>
+                                                        <li class="json-file">happy.exp.json</li>
+                                                        <li class="json-file">sad.exp.json</li>
+                                                    </ul>
+                                                </li>
+                                                <li>motions/ (动作文件)
+                                                    <ul>
+                                                        <li class="json-file">idle_01.mtn.json</li>
+                                                        <li class="json-file">idle_02.mtn.json</li>
+                                                        <li class="json-file">tap_body_01.mtn.json</li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>chibi/ (Q版角色)
+                                            <ul>
+                                                <li class="model-file">chibi.moc</li>
+                                                <li class="json-file">model.json</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>editor/ (编辑器界面)
+                                    <ul>
+                                        <li class="js-file">EditorUI.js</li>
+                                        <li class="js-file">ParameterPanel.js</li>
+                                        <li class="js-file">TimelineEditor.js</li>
+                                        <li class="js-file">ExpressionEditor.js</li>
+                                    </ul>
+                                </li>
+                                <li class="file">README.md (说明文档)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <p>Live2D模型项目采用分层结构组织。核心引擎负责模型加载和渲染，模型文件包含所有资源，编辑器提供可视化编辑界面。这种结构便于管理多个角色模型和扩展功能。</p>
+        </section>
+
+        <!-- 模型展示 -->
+        <section class="page-section" id="model-showcase">
+            <h2 class="section-title">角色模型库</h2>
+            
+            <div class="model-showcase">
+                <div class="model-card">
+                    <div class="model-image" style="background-color: #4361ee;">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <div class="model-info">
+                        <h4>少女角色 - 樱</h4>
+                        <p>校园风格的少女角色，包含丰富的表情和动作。</p>
+                        <div class="model-tags">
+                            <span class="model-tag">学生</span>
+                            <span class="model-tag">双马尾</span>
+                            <span class="model-tag">7种表情</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="model-card">
+                    <div class="model-image" style="background-color: #3a0ca3;">
+                        <i class="fas fa-male"></i>
+                    </div>
+                    <div class="model-info">
+                        <h4>少年角色 - 枫</h4>
+                        <p>运动风格的少年角色，支持物理模拟的头发和服装。</p>
+                        <div class="model-tags">
+                            <span class="model-tag">运动</span>
+                            <span class="model-tag">短发</span>
+                            <span class="model-tag">物理模拟</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="model-card">
+                    <div class="model-image" style="background-color: #f72585;">
+                        <i class="fas fa-cat"></i>
+                    </div>
+                    <div class="model-info">
+                        <h4>兽娘角色 - 米亚</h4>
+                        <p>猫耳兽娘角色，包含耳朵和尾巴的独立物理模拟。</p>
+                        <div class="model-tags">
+                            <span class="model-tag">兽娘</span>
+                            <span class="model-tag">猫耳</span>
+                            <span class="model-tag">尾巴物理</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="model-card">
+                    <div class="model-image" style="background-color: #7209b7;">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="model-info">
+                        <h4>机械角色 - 零式</h4>
+                        <p>未来风格的机械角色，包含发光部件和机械动作。</p>
+                        <div class="model-tags">
+                            <span class="model-tag">机械</span>
+                            <span class="model-tag">发光</span>
+                            <span class="model-tag">机械音效</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 相关资源 -->
+        <section class="page-section">
+            <h2 class="section-title">相关资源与链接</h2>
+            
+            <p>以下是与Live2D角色模型相关的资源和文档链接：</p>
+            
+            <div class="resource-links">
+                <a href="https://github.com/yourusername/live2d-editor" class="resource-link" target="_blank">
+                    <i class="fab fa-github"></i> 查看完整源代码
+                </a>
+                
+                <a href="../art-resources/character-arts.html" class="resource-link">
+                    <i class="fas fa-palette"></i> 角色立绘资源
+                </a>
+                
+                <a href="../game-scripts/rpg-system.html" class="resource-link">
+                    <i class="fas fa-code"></i> RPG战斗系统
+                </a>
+                
+                <a href="facial-expressions.html" class="resource-link">
+                    <i class="fas fa-smile"></i> 表情编辑系统
+                </a>
+                
+                <a href="https://www.live2d.com" class="resource-link" target="_blank">
+                    <i class="fas fa-cube"></i> Live2D官方网站
+                </a>
+                
+                <a href="https://docs.live2d.com/cubism-sdk-manual/getting-started/" class="resource-link" target="_blank">
+                    <i class="fas fa-book"></i> Live2D SDK文档
+                </a>
+            </div>
+        </section>
+
+        <!-- 页面导航 -->
+        <div class="page-navigation">
+            <a href="../index.html" class="nav-button">
+                <i class="fas fa-home"></i> 返回主页面
+            </a>
+            
+            <div>
+                <a href="../game-scripts/physics-simulation.html" class="nav-button">
+                    <i class="fas fa-arrow-left"></i> 上一个: 物理引擎模拟
+                </a>
+                <a href="../art-resources/character-arts.html" class="nav-button">
+                    下一个: 角色立绘资源 <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // 初始化代码高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+            
+            // 初始化Live2D演示
+            initLive2DDemo();
+        });
+        
+        // 复制代码功能
+        function copyCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            const textToCopy = codeElement.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // 显示复制成功提示
+                const button = event.target.closest('.copy-button');
+                const originalHTML = button.innerHTML;
+                
+                button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                button.style.backgroundColor = 'rgba(76, 175, 80, 0.2)';
+                button.style.color = '#4CAF50';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('复制失败: ', err);
+                alert('复制失败，请手动选择文本复制');
+            });
+        }
+        
+        // 平滑滚动到锚点
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Live2D演示功能
+        function initLive2DDemo() {
+            // 模拟Live2D参数控制
+            const eyeSlider = document.getElementById('eyeSlider');
+            const mouthSlider = document.getElementById('mouthSlider');
+            const headXSlider = document.getElementById('headXSlider');
+            const headYSlider = document.getElementById('headYSlider');
+            
+            const eyeValue = document.getElementById('eyeValue');
+            const mouthValue = document.getElementById('mouthValue');
+            const headXValue = document.getElementById('headXValue');
+            const headYValue = document.getElementById('headYValue');
+            
+            const expressionButtons = document.querySelectorAll('.expression-btn');
+            const canvas = document.getElementById('live2dCanvas');
+            
+            // 眼睛控制
+            eyeSlider.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                eyeValue.textContent = value.toFixed(2);
+                
+                // 模拟Live2D参数更新
+                updateCanvasVisual();
+            });
+            
+            // 嘴巴控制
+            mouthSlider.addEventListener('input', function() {
+                const value = parseFloat(this.value);
+                mouthValue.textContent = value.toFixed(2);
+                
+                // 模拟Live2D参数更新
+                updateCanvasVisual();
+            });
+            
+            // 头部X控制
+            headXSlider.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                headXValue.textContent = value;
+                
+                // 模拟Live2D参数更新
+                updateCanvasVisual();
+            });
+            
+            // 头部Y控制
+            headYSlider.addEventListener('input', function() {
+                const value = parseInt(this.value);
+                headYValue.textContent = value;
+                
+                // 模拟Live2D参数更新
+                updateCanvasVisual();
+            });
+            
+            // 表情按钮
+            expressionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // 移除所有按钮的active类
+                    expressionButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // 为当前按钮添加active类
+                    this.classList.add('active');
+                    
+                    // 获取表情类型
+                    const expression = this.getAttribute('data-expression');
+                    
+                    // 模拟表情切换
+                    updateCanvasVisual(expression);
+                });
+            });
+            
+            // 模拟Live2D画布更新
+            function updateCanvasVisual(expression = 'neutral') {
+                // 这里只是模拟，实际应该更新真正的Live2D模型
+                const eyeValue = parseFloat(eyeSlider.value);
+                const mouthValue = parseFloat(mouthSlider.value);
+                const headXValue = parseInt(headXSlider.value);
+                const headYValue = parseInt(headYSlider.value);
+                
+                // 更新画布指示器
+                const canvas = document.getElementById('live2dCanvas');
+                
+                // 创建可视化指示器
+                let indicatorHtml = `
+                    <div style="color: white; text-align: center; padding: 2rem;">
+                        <i class="fas fa-user" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h3>Live2D模型演示</h3>
+                        <p>当前表情: <strong>${expression}</strong></p>
+                        <p>眼睛开合: <strong>${eyeValue.toFixed(2)}</strong></p>
+                        <p>嘴巴开合: <strong>${mouthValue.toFixed(2)}</strong></p>
+                        <p>头部角度: X=${headXValue}°, Y=${headYValue}°</p>
+                    </div>
+                `;
+                
+                // 根据表情添加不同的图标
+                let icon = 'fa-user';
+                if (expression === 'happy') icon = 'fa-smile';
+                else if (expression === 'sad') icon = 'fa-frown';
+                else if (expression === 'angry') icon = 'fa-angry';
+                else if (expression === 'surprised') icon = 'fa-surprise';
+                
+                indicatorHtml = `
+                    <div style="color: white; text-align: center; padding: 2rem;">
+                        <i class="fas ${icon}" style="font-size: 6rem; margin-bottom: 1rem; color: #ff6b6b;"></i>
+                        <h3>Live2D模型演示</h3>
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 1rem; margin: 1rem 0;">
+                            <p>表情: <strong style="color: #4cc9f0">${expression}</strong></p>
+                            <p>眼睛: <strong>${eyeValue.toFixed(2)}</strong></p>
+                            <p>嘴巴: <strong>${mouthValue.toFixed(2)}</strong></p>
+                            <p>头部角度: X=${headXValue}°, Y=${headYValue}°</p>
+                        </div>
+                        <p style="font-size: 0.9rem; opacity: 0.8;">这是一个模拟的Live2D控制器</p>
+                    </div>
+                `;
+                
+                canvas.innerHTML = indicatorHtml;
+            }
+            
+            // 初始更新
+            updateCanvasVisual();
+            
+            // 添加鼠标跟踪效果
+            canvas.addEventListener('mousemove', function(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // 模拟视线跟踪
+                const headX = (x / rect.width * 60 - 30).toFixed(0);
+                const headY = (y / rect.height * 40 - 20).toFixed(0);
+                
+                // 更新头部角度指示器
+                const indicator = canvas.querySelector('div');
+                if (indicator && indicator.querySelector('p:nth-child(3)')) {
+                    const angleText = indicator.querySelector('p:nth-child(3)');
+                    angleText.innerHTML = `头部角度: X=${headX}°, Y=${headY}° <small>(鼠标跟踪)</small>`;
+                }
+            });
+            
+            // 鼠标离开时重置
+            canvas.addEventListener('mouseleave', function() {
+                setTimeout(() => {
+                    const indicator = canvas.querySelector('div');
+                    if (indicator && indicator.querySelector('p:nth-child(3)')) {
+                        const angleText = indicator.querySelector('p:nth-child(3)');
+                        const headXValue = document.getElementById('headXValue').textContent;
+                        const headYValue = document.getElementById('headYValue').textContent;
+                        angleText.innerHTML = `头部角度: X=${headXValue}°, Y=${headYValue}°`;
+                    }
+                }, 500);
+            });
+        }
+    </script>
+</body>
+</html>
